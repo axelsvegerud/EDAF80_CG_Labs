@@ -245,7 +245,7 @@ int main()
 
 
 
-	// Children:
+	// Setup children:
 	sun.add_child(&earth);
 	earth.add_child(&moon);
 	sun.add_child(&mercury);
