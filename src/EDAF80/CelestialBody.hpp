@@ -44,12 +44,12 @@ public:
 	glm::mat4 get_transform() const;
 
 private:
-	// private node from the class Node.
+	// private nodes from the class Node.
 	Node _body;
 	Node _ring_node;
 
 	// Vectors:
-	glm::vec3 _body_scale = glm::vec3(1, 1, 1);
+	glm::vec3 _body_scale = glm::vec3(1.0f);
 	glm::vec2 _ring_scale = glm::vec2(1.0f);
 	std::vector<CelestialBody*> _child_nodes;
 
