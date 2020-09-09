@@ -45,10 +45,10 @@ glm::mat4 CelestialBody::render(std::chrono::microseconds ellapsed_time, glm::ma
 
 	// Tilt orbit matrix
 	// "Tilt according to th orbit inclination angle => rotation around z-axis
-	glm::mat4 tilt_orbit_matrix = glm::rotate(glm::mat4(1.0f), _orbit_inclination, glm::vec3(0, 0, 1));
+	glm::mat4 tilt_orbit_matrix = glm::rotate(glm::identity<glm::mat4>(), _orbit_inclination, glm::vec3(0, 0, 1));
 
 	// Transform matrix
-	_transform_matrix = tilt_orbit_matrix * orbit_matrix * translation_matrix;
+	_transform_matrix = parent_transform * tilt_orbit_matrix * orbit_matrix * translation_matrix;
 
 	// Combination of the matrices
 	// Rotate before scaling
@@ -62,7 +62,7 @@ glm::mat4 CelestialBody::render(std::chrono::microseconds ellapsed_time, glm::ma
 
 	_ring_node.render(view_projection, matrix_rings);
 
-	return parent_transform * _transform_matrix;
+	return _transform_matrix;
 }
 
 void CelestialBody::set_scale(glm::vec3 const& scale) {

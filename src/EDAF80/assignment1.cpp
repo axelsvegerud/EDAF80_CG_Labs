@@ -366,10 +366,11 @@ int main()
 
 			// Start at top
 			curr_node = stack.top();
-			curr_mat = mat_stack.top() * curr_node->get_transform();
+			curr_mat = mat_stack.top();
 
-			// Render 
-			curr_node->render(animation_delta_time_us, camera.GetWorldToClipMatrix(), curr_mat);
+			// Render
+			// Child Parent mat -> the parrent_transform
+			glm::mat4 child_parent_mat = curr_node->render(animation_delta_time_us, camera.GetWorldToClipMatrix(), curr_mat);
 
 			// Remove current from stack
 			stack.pop();
@@ -379,7 +380,7 @@ int main()
 			// Traverse children
 			for (CelestialBody* child : curr_node->get_children()) {
 				stack.push(child);
-				mat_stack.push(curr_mat * curr_node->get_transform());
+				mat_stack.push(child_parent_mat);
 			}
 
 		}
