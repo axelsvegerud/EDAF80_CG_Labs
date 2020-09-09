@@ -4,6 +4,8 @@
 #include "core/helpers.hpp"
 #include "../core/node.hpp"
 
+//Test!
+
 class CelestialBody {
 public:
 
