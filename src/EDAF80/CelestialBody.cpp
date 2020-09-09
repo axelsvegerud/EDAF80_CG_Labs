@@ -34,7 +34,6 @@ glm::mat4 CelestialBody::render(std::chrono::microseconds ellapsed_time, glm::ma
 
 	// ***ORBITING:***
 
-
 	// Orbit matrix
 	// "rotate around the y-axis."
 	glm::mat4 orbit_matrix = glm::rotate(glm::mat4(1.0f), _orbit_angle, glm::vec3(0, 1, 0));
@@ -52,6 +51,7 @@ glm::mat4 CelestialBody::render(std::chrono::microseconds ellapsed_time, glm::ma
 	_transform_matrix = tilt_orbit_matrix * orbit_matrix * translation_matrix;
 
 	// Combination of the matrices
+	// Rotate before scaling
 	glm::mat4 matrix = _transform_matrix * tilt_spin_matrix * spin_matrix * scale_matrix;
 
 	// Combination of the matrices for rings.
