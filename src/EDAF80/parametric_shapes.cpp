@@ -131,12 +131,33 @@ parametric_shapes::createQuad(float const width, float const height,
 }
 
 bonobo::mesh_data
-parametric_shapes::createSphere(float const radius,
-                                unsigned int const longitude_split_count,
-                                unsigned int const latitude_split_count)
-{
-
+parametric_shapes::createSphere(float const radius, unsigned int const longitude_split_count, unsigned int const latitude_split_count) {
 	//! \todo Implement this function
+
+	// longitude_split_count -> theta
+	// latitude_split_count -> phi
+
+	auto const longitude_slice_edges_count = longitude_split_count + 1u;
+	auto const latitude_slice_edges_count = latitude_split_count + 1u;
+	auto const longitude_slice_vertices_count = longitude_slice_edges_count + 1u;
+	auto const latitude_slice_vertices_count = latitude_slice_edges_count + 1u;
+	auto const vertices_nb = longitude_slice_vertices_count * latitude_slice_vertices_count;
+
+	auto vertices = std::vector<glm::vec3>(vertices_nb);
+	auto normals = std::vector<glm::vec3>(vertices_nb);
+	auto texcoords = std::vector<glm::vec3>(vertices_nb);
+	auto tangents = std::vector<glm::vec3>(vertices_nb);
+	auto binormals = std::vector<glm::vec3>(vertices_nb);
+
+	float theta = 0.0f;
+	float phi = 0.0f;
+
+	float const d_theta = glm::two_pi<float>() / (static_cast<float>(longitude_slice_edges_count)); // Goes from 0 to 2PI
+	float const d_phi = glm::pi<float>() / (static_cast<float>(latitude_slice_edges_count)); // Goes from 0 to PI
+
+	// Generate vertices iteratively
+
+
 	return bonobo::mesh_data();
 }
 
