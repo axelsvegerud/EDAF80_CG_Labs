@@ -156,6 +156,52 @@ parametric_shapes::createSphere(float const radius, unsigned int const longitude
 	float const d_phi = glm::pi<float>() / (static_cast<float>(latitude_slice_edges_count)); // Goes from 0 to PI
 
 	// Generate vertices iteratively
+	size_t index = 0u;
+	for(unsigned int i = 0u; i < longitude_slice_vertices_count; i++){
+		float const cos_theta = std::cos(theta);
+		float const sin_theta = std::sin(theta);
+
+		phi = 0.0f; // Reset when evaluated for one theta!
+
+		for(unsigned int j = 0u; j < latitude_slice_vertices_count; j++){
+			float const cos_phi = std::cos(phi);
+			float const sin_phi = std::sin(phi);
+
+			// Vertices:
+			vertices[index] = glm::vec3( radius * sin_theta * sin_phi,
+			                             -radius * cos_phi,
+			                             radius * cos_theta * sin_phi);
+			
+			// Texture coordinates:
+			texcoords[index] = glm::vec3( static_cast<float>(j) / (static_cast<float>(latitude_slice_vertices_count)),
+			                              static_cast<float>(i) / (static_cast<float>(longitude_slice_vertices_count)),
+			                              0.0f );
+			
+			// Tangent:
+			auto t = glm::vec3( radius * cos_theta * sin_phi,
+								0, 
+								-radius * sin_theta );
+			t = glm::normalise(t);
+			tangents[index] = t;
+
+			// Binormal:
+			auto b = glm::vec3( radius * sin_theta * cos_phi
+								radius * sin_phi
+								tadius * cos_theta * cos_phi );
+			b = glm::normalise(b);
+			binormals[index] = b;
+
+			// Normal:
+			auto const n = glm::cross(t, b);
+			normals[index] = b;
+
+			phi += d_phi;
+			index++;
+		}
+
+		theta += d_theta;
+		
+	}
 
 
 	return bonobo::mesh_data();
