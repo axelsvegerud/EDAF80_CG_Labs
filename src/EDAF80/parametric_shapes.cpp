@@ -69,9 +69,13 @@ parametric_shapes::createQuad(float const width, float const height,
 	// and therefore bind the buffer to the corresponding target.
 	glBindBuffer(GL_ARRAY_BUFFER, /*! \todo bind the previously generated Buffer */ data.bo);
 
-	glBufferData(GL_ARRAY_BUFFER, /*! \todo how many bytes should the buffer contain? */,
-	             /* where is the data stored on the CPU? */vertices.data(),
-	             /* inform OpenGL that the data is modified once, but used often */GL_STATIC_DRAW);
+	//
+	auto const bo_size = static_cast<GLsizeiptr>(vertices.size() * sizeof(glm::vec3));
+	//
+
+	glBufferData(GL_ARRAY_BUFFER, /*! \todo how many bytes should the buffer contain? */ bo_size,
+	             /* where is the data stored on the CPU? */ vertices.data(),
+	             /* inform OpenGL that the data is modified once, but used often */ GL_STATIC_DRAW);
 
 	// Vertices have been just stored into a buffer, but we still need to
 	// tell Vertex Array where to find them, and how to interpret the data
@@ -108,8 +112,11 @@ parametric_shapes::createQuad(float const width, float const height,
 	// elements, aka. indices!
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, /*! \todo bind the previously generated Buffer */ data.ibo);
 
+	//
+	auto const ibo_size = static_cast<GLsizeiptr>(index_sets.size() * sizeof(glm::uvec3));
+	//
 
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, /*! \todo how many bytes should the buffer contain? */0u,
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, /*! \todo how many bytes should the buffer contain? */ibo_size,
 	             /* where is the data stored on the CPU? */index_sets.data(),
 	             /* inform OpenGL that the data is modified once, but used often */GL_STATIC_DRAW);
 
