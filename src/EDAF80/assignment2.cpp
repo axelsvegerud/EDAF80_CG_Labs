@@ -130,8 +130,8 @@ edaf80::Assignment2::run()
 
 	// Enable face culling to improve performance
 	//glEnable(GL_CULL_FACE);
-	//glCullFace(GL_FRONT);
-	//glCullFace(GL_BACK);
+	//glCullFace(GL_FRONT); // Renders the triangles that represent what the camera sees. "Remove triangles facing away from the camera."
+	//glCullFace(GL_BACK); // Renders the triangles that represent what the camera caen't see.
 
 
 
