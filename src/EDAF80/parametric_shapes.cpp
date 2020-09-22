@@ -180,7 +180,7 @@ parametric_shapes::createSphere(float const radius, unsigned int const longitude
 			// Tangent:
 			auto t = glm::vec3( radius * cos_theta * sin_phi,
 								0, 
-								-radius * sin_theta );
+								-radius * sin_theta * sin_phi );
 			t = glm::normalize(t);
 			tangents[index] = t;
 
