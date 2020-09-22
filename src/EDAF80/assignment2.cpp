@@ -37,7 +37,8 @@ edaf80::Assignment2::run()
 {
 	// Load the sphere geometry
 	//auto const shape = parametric_shapes::createCircleRing(2.0f, 0.75f, 40u, 4u);
-	auto const shape = parametric_shapes::createSphere(2.0f, 20u, 20u);
+	auto const shape = parametric_shapes::createSphere(0.5f, 20u, 20u);
+
 	if (shape.vao == 0u)
 		return;
 
@@ -105,7 +106,7 @@ edaf80::Assignment2::run()
 
 	// Set the default tensions value; it can always be changed at runtime
 	// through the "Scene Controls" window.
-	float catmull_rom_tension = 0.0f;
+	float catmull_rom_tension = 0.5f;
 
 	// Set whether the default interpolation algorithm should be the linear one;
 	// it can always be changed at runtime through the "Scene Controls" window.
@@ -115,6 +116,7 @@ edaf80::Assignment2::run()
 	// always be changed at runtime through the "Scene Controls" window.
 	bool interpolate = true;
 
+
 	auto circle_rings = Node();
 	circle_rings.set_geometry(shape);
 	circle_rings.set_program(&fallback_shader, set_uniforms);
@@ -122,6 +124,7 @@ edaf80::Assignment2::run()
 
 
 	//! \todo Create a tesselated sphere and a tesselated torus
+
 
 
 	glClearDepthf(1.0f);
@@ -134,8 +137,8 @@ edaf80::Assignment2::run()
 	//glCullFace(GL_BACK); // Renders the triangles that represent what the camera caen't see.
 
 
-
 	auto const control_point_sphere = parametric_shapes::createSphere(0.1f, 10u, 10u);
+
 	std::array<glm::vec3, 9> control_point_locations = {
 		glm::vec3( 0.0f,  0.0f,  0.0f),
 		glm::vec3( 1.0f,  1.8f,  1.0f),
@@ -147,6 +150,7 @@ edaf80::Assignment2::run()
 		glm::vec3(-2.0f, -1.2f, -2.0f),
 		glm::vec3(-1.0f, -1.8f, -1.0f)
 	};
+
 	std::array<Node, control_point_locations.size()> control_points;
 	for (std::size_t i = 0; i < control_point_locations.size(); ++i) {
 		auto& control_point = control_points[i];
@@ -154,7 +158,7 @@ edaf80::Assignment2::run()
 		control_point.set_program(&diffuse_shader, set_uniforms);
 		control_point.get_transform().SetTranslate(control_point_locations[i]);
 	}
-
+	
 
 	auto lastTime = std::chrono::high_resolution_clock::now();
 
@@ -163,6 +167,17 @@ edaf80::Assignment2::run()
 	auto polygon_mode = bonobo::polygon_mode_t::fill;
 	bool show_logs = true;
 	bool show_gui = true;
+
+	// Init for interpolation:
+	float path_pos = 0.0f;
+	float pos_velocity = 0.02f;
+	int current_index = 0;
+	int next_index = 0;
+	int next_next_index = 0;
+	int prev_index = 0;
+	float distance_ratio = 0;
+	glm::vec3 newPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+
 
 	while (!glfwWindowShouldClose(window)) {
 		auto const nowTime = std::chrono::high_resolution_clock::now();
@@ -202,26 +217,87 @@ edaf80::Assignment2::run()
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		bonobo::changePolygonMode(polygon_mode);
 
-
+		
 		if (interpolate) {
-			//! \todo Interpolate the movement of a shape between various
-			//!        control points.
+			//! \todo Interpolate the movement of a shape between various control points.
+
 			if (use_linear) {
-				//! \todo Compute the interpolated position
-				//!       using the linear interpolation.
+				//! \todo Compute the interpolated position using the linear interpolation.
+				current_index = floor(path_pos);
+				next_index = current_index + 1;
+				distance_ratio = path_pos - current_index;
+
+				// Wrap indices:
+				if (current_index == control_point_locations.size() - 1) {
+					next_index = 0;
+				}
+
+				if (current_index == control_point_locations.size()) {
+					current_index = 0;
+					next_index = 1;
+					path_pos = 0;
+				}
+
+				// Run interpolation:
+				newPosition = interpolation::evalLERP(	control_point_locations[current_index],
+														control_point_locations[next_index],
+														distance_ratio );
+
 			}
 			else {
-				//! \todo Compute the interpolated position
-				//!       using the Catmull-Rom interpolation;
-				//!       use the `catmull_rom_tension`
-				//!       variable as your tension argument.
+				//! \todo Compute the interpolated position using the Catmull-Rom interpolation.
+				//!       Use the `catmull_rom_tension` variable as your tension argument.
+				current_index = floor(path_pos);
+				next_index = current_index + 1;
+				next_next_index = current_index + 2;
+				prev_index = current_index - 1;
+				distance_ratio = path_pos - current_index;
+
+				// Wrap indices:
+				if(current_index == control_point_locations.size() - 2){
+					next_next_index = 0;
+				}
+
+				if(current_index == control_point_locations.size() - 1){
+					next_index = 0;
+					next_next_index = 1;
+				}
+
+				if(current_index == control_point_locations.size()){
+					current_index = 0;
+					next_index = 1;
+					next_next_index = 2;
+					path_pos = 0;
+				}
+
+				if(current_index == 0){
+					prev_index = control_point_locations.size() - 1;
+				}
+
+				// Run interpolation:
+				newPosition = interpolation::evalCatmullRom(control_point_locations[prev_index],
+															control_point_locations[current_index],
+															control_point_locations[next_index],
+															control_point_locations[next_next_index],
+															catmull_rom_tension,
+															distance_ratio );
 			}
+
+			// Update animated object:
+			circle_rings_transform_ref.SetTranslate(newPosition);
+
+			// Step forward:
+			path_pos += pos_velocity;
+
 		}
 
+		
 		circle_rings.render(mCamera.GetWorldToClipMatrix());
+		
 		for (auto const& control_point : control_points) {
 			control_point.render(mCamera.GetWorldToClipMatrix());
 		}
+		
 
 		bool const opened = ImGui::Begin("Scene Controls", nullptr, ImGuiWindowFlags_None);
 		if (opened) {
