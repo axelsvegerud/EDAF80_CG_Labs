@@ -20,11 +20,11 @@
 
 edaf80::Assignment2::Assignment2(WindowManager& windowManager) :
 	mCamera(0.5f * glm::half_pi<float>(),
-	        static_cast<float>(config::resolution_x) / static_cast<float>(config::resolution_y),
-	        0.01f, 1000.0f),
+		static_cast<float>(config::resolution_x) / static_cast<float>(config::resolution_y),
+		0.01f, 1000.0f),
 	inputHandler(), mWindowManager(windowManager), window(nullptr)
 {
-	WindowManager::WindowDatum window_datum{ inputHandler, mCamera, config::resolution_x, config::resolution_y, 0, 0, 0, 0};
+	WindowManager::WindowDatum window_datum{ inputHandler, mCamera, config::resolution_x, config::resolution_y, 0, 0, 0, 0 };
 
 	window = mWindowManager.CreateGLFWWindow("EDAF80: Assignment 2", window_datum, config::msaa_rate);
 	if (window == nullptr) {
@@ -51,9 +51,9 @@ edaf80::Assignment2::run()
 	ShaderProgramManager program_manager;
 	GLuint fallback_shader = 0u;
 	program_manager.CreateAndRegisterProgram("Fallback",
-	                                         { { ShaderType::vertex, "EDAF80/fallback.vert" },
-	                                           { ShaderType::fragment, "EDAF80/fallback.frag" } },
-	                                         fallback_shader);
+		{ { ShaderType::vertex, "EDAF80/fallback.vert" },
+		  { ShaderType::fragment, "EDAF80/fallback.frag" } },
+		fallback_shader);
 	if (fallback_shader == 0u) {
 		LogError("Failed to load fallback shader");
 		return;
@@ -61,46 +61,46 @@ edaf80::Assignment2::run()
 
 	GLuint diffuse_shader = 0u;
 	program_manager.CreateAndRegisterProgram("Diffuse",
-	                                         { { ShaderType::vertex, "EDAF80/diffuse.vert" },
-	                                           { ShaderType::fragment, "EDAF80/diffuse.frag" } },
-	                                         diffuse_shader);
+		{ { ShaderType::vertex, "EDAF80/diffuse.vert" },
+		  { ShaderType::fragment, "EDAF80/diffuse.frag" } },
+		diffuse_shader);
 	if (diffuse_shader == 0u)
 		LogError("Failed to load diffuse shader");
 
 	GLuint normal_shader = 0u;
 	program_manager.CreateAndRegisterProgram("Normal",
-	                                         { { ShaderType::vertex, "EDAF80/normal.vert" },
-	                                           { ShaderType::fragment, "EDAF80/normal.frag" } },
-	                                         normal_shader);
+		{ { ShaderType::vertex, "EDAF80/normal.vert" },
+		  { ShaderType::fragment, "EDAF80/normal.frag" } },
+		normal_shader);
 	if (normal_shader == 0u)
 		LogError("Failed to load normal shader");
 
 	GLuint tangent_shader = 0u;
 	program_manager.CreateAndRegisterProgram("Tangent",
-	                                         { { ShaderType::vertex, "EDAF80/tangent.vert" },
-	                                           { ShaderType::fragment, "EDAF80/tangent.frag" } },
-	                                         tangent_shader);
+		{ { ShaderType::vertex, "EDAF80/tangent.vert" },
+		  { ShaderType::fragment, "EDAF80/tangent.frag" } },
+		tangent_shader);
 	if (tangent_shader == 0u)
 		LogError("Failed to load tangent shader");
 
 	GLuint binormal_shader = 0u;
 	program_manager.CreateAndRegisterProgram("Bitangent",
-	                                         { { ShaderType::vertex, "EDAF80/binormal.vert" },
-	                                           { ShaderType::fragment, "EDAF80/binormal.frag" } },
-	                                         binormal_shader);
+		{ { ShaderType::vertex, "EDAF80/binormal.vert" },
+		  { ShaderType::fragment, "EDAF80/binormal.frag" } },
+		binormal_shader);
 	if (binormal_shader == 0u)
 		LogError("Failed to load binormal shader");
 
 	GLuint texcoord_shader = 0u;
 	program_manager.CreateAndRegisterProgram("Texture coords",
-	                                         { { ShaderType::vertex, "EDAF80/texcoord.vert" },
-	                                           { ShaderType::fragment, "EDAF80/texcoord.frag" } },
-	                                         texcoord_shader);
+		{ { ShaderType::vertex, "EDAF80/texcoord.vert" },
+		  { ShaderType::fragment, "EDAF80/texcoord.frag" } },
+		texcoord_shader);
 	if (texcoord_shader == 0u)
 		LogError("Failed to load texcoord shader");
 
 	auto const light_position = glm::vec3(-2.0f, 4.0f, 2.0f);
-	auto const set_uniforms = [&light_position](GLuint program){
+	auto const set_uniforms = [&light_position](GLuint program) {
 		glUniform3fv(glGetUniformLocation(program, "light_position"), 1, glm::value_ptr(light_position));
 	};
 
@@ -140,11 +140,11 @@ edaf80::Assignment2::run()
 	auto const control_point_sphere = parametric_shapes::createSphere(0.1f, 10u, 10u);
 
 	std::array<glm::vec3, 9> control_point_locations = {
-		glm::vec3( 0.0f,  0.0f,  0.0f),
-		glm::vec3( 1.0f,  1.8f,  1.0f),
-		glm::vec3( 2.0f,  1.2f,  2.0f),
-		glm::vec3( 3.0f,  3.0f,  3.0f),
-		glm::vec3( 3.0f,  0.0f,  3.0f),
+		glm::vec3(0.0f,  0.0f,  0.0f),
+		glm::vec3(1.0f,  1.8f,  1.0f),
+		glm::vec3(2.0f,  1.2f,  2.0f),
+		glm::vec3(3.0f,  3.0f,  3.0f),
+		glm::vec3(3.0f,  0.0f,  3.0f),
 		glm::vec3(-2.0f, -1.0f,  3.0f),
 		glm::vec3(-3.0f, -3.0f, -3.0f),
 		glm::vec3(-2.0f, -1.2f, -2.0f),
@@ -158,7 +158,7 @@ edaf80::Assignment2::run()
 		control_point.set_program(&diffuse_shader, set_uniforms);
 		control_point.get_transform().SetTranslate(control_point_locations[i]);
 	}
-	
+
 
 	auto lastTime = std::chrono::high_resolution_clock::now();
 
@@ -217,7 +217,7 @@ edaf80::Assignment2::run()
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		bonobo::changePolygonMode(polygon_mode);
 
-		
+
 		if (interpolate) {
 			//! \todo Interpolate the movement of a shape between various control points.
 
@@ -239,9 +239,9 @@ edaf80::Assignment2::run()
 				}
 
 				// Run interpolation:
-				newPosition = interpolation::evalLERP(	control_point_locations[current_index],
-														control_point_locations[next_index],
-														distance_ratio );
+				newPosition = interpolation::evalLERP(control_point_locations[current_index],
+					control_point_locations[next_index],
+					distance_ratio);
 
 			}
 			else {
@@ -254,33 +254,33 @@ edaf80::Assignment2::run()
 				distance_ratio = path_pos - current_index;
 
 				// Wrap indices:
-				if(current_index == control_point_locations.size() - 2){
+				if (current_index == control_point_locations.size() - 2) {
 					next_next_index = 0;
 				}
 
-				if(current_index == control_point_locations.size() - 1){
+				if (current_index == control_point_locations.size() - 1) {
 					next_index = 0;
 					next_next_index = 1;
 				}
 
-				if(current_index == control_point_locations.size()){
+				if (current_index == control_point_locations.size()) {
 					current_index = 0;
 					next_index = 1;
 					next_next_index = 2;
 					path_pos = 0;
 				}
 
-				if(current_index == 0){
+				if (current_index == 0) {
 					prev_index = control_point_locations.size() - 1;
 				}
 
 				// Run interpolation:
 				newPosition = interpolation::evalCatmullRom(control_point_locations[prev_index],
-															control_point_locations[current_index],
-															control_point_locations[next_index],
-															control_point_locations[next_next_index],
-															catmull_rom_tension,
-															distance_ratio );
+					control_point_locations[current_index],
+					control_point_locations[next_index],
+					control_point_locations[next_next_index],
+					catmull_rom_tension,
+					distance_ratio);
 			}
 
 			// Update animated object:
@@ -291,13 +291,13 @@ edaf80::Assignment2::run()
 
 		}
 
-		
+
 		circle_rings.render(mCamera.GetWorldToClipMatrix());
-		
+
 		for (auto const& control_point : control_points) {
 			control_point.render(mCamera.GetWorldToClipMatrix());
 		}
-		
+
 
 		bool const opened = ImGui::Begin("Scene Controls", nullptr, ImGuiWindowFlags_None);
 		if (opened) {
@@ -332,7 +332,8 @@ int main()
 	try {
 		edaf80::Assignment2 assignment2(framework.GetWindowManager());
 		assignment2.run();
-	} catch (std::runtime_error const& e) {
+	}
+	catch (std::runtime_error const& e) {
 		LogError(e.what());
 	}
 }

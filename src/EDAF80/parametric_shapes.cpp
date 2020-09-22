@@ -11,19 +11,19 @@
 
 bonobo::mesh_data
 parametric_shapes::createQuad(float const width, float const height,
-                              unsigned int const horizontal_split_count,
-                              unsigned int const vertical_split_count)
+	unsigned int const horizontal_split_count,
+	unsigned int const vertical_split_count)
 {
 	auto const vertices = std::array<glm::vec3, 4>{
-		glm::vec3(0.0f,  0.0f,   0.0f),
-		glm::vec3(width, 0.0f,   0.0f),
-		glm::vec3(width, height, 0.0f),
-		glm::vec3(0.0f,  height, 0.0f)
+		glm::vec3(0.0f, 0.0f, 0.0f),
+			glm::vec3(width, 0.0f, 0.0f),
+			glm::vec3(width, height, 0.0f),
+			glm::vec3(0.0f, height, 0.0f)
 	};
 
 	auto const index_sets = std::array<glm::uvec3, 2>{
 		glm::uvec3(0u, 1u, 2u),
-		glm::uvec3(0u, 2u, 3u)
+			glm::uvec3(0u, 2u, 3u)
 	};
 
 	bonobo::mesh_data data;
@@ -74,8 +74,8 @@ parametric_shapes::createQuad(float const width, float const height,
 	//
 
 	glBufferData(GL_ARRAY_BUFFER, /*! \todo how many bytes should the buffer contain? */ bo_size,
-	             /* where is the data stored on the CPU? */ vertices.data(),
-	             /* inform OpenGL that the data is modified once, but used often */ GL_STATIC_DRAW);
+		/* where is the data stored on the CPU? */ vertices.data(),
+		/* inform OpenGL that the data is modified once, but used often */ GL_STATIC_DRAW);
 
 	// Vertices have been just stored into a buffer, but we still need to
 	// tell Vertex Array where to find them, and how to interpret the data
@@ -97,11 +97,11 @@ parametric_shapes::createQuad(float const width, float const height,
 	// GL_ARRAY_BUFFER as its source for the data. How to interpret it is
 	// specified below:
 	glVertexAttribPointer(static_cast<unsigned int>(bonobo::shader_bindings::vertices),
-	                      /*! \todo how many components do our vertices have? */ 3,
-	                      /* what is the type of each component? */GL_FLOAT,
-	                      /* should it automatically normalise the values stored */GL_FALSE,
-	                      /* once all components of a vertex have been read, how far away (in bytes) is the next vertex? */0,
-	                      /* how far away (in bytes) from the start of the buffer is the first vertex? */reinterpret_cast<GLvoid const*>(0x0));
+		/*! \todo how many components do our vertices have? */ 3,
+		/* what is the type of each component? */GL_FLOAT,
+		/* should it automatically normalise the values stored */GL_FALSE,
+		/* once all components of a vertex have been read, how far away (in bytes) is the next vertex? */0,
+		/* how far away (in bytes) from the start of the buffer is the first vertex? */reinterpret_cast<GLvoid const*>(0x0));
 
 	// Now, let's allocate a second one for the indices.
 	//
@@ -117,8 +117,8 @@ parametric_shapes::createQuad(float const width, float const height,
 	//
 
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, /*! \todo how many bytes should the buffer contain? */ibo_size,
-	             /* where is the data stored on the CPU? */index_sets.data(),
-	             /* inform OpenGL that the data is modified once, but used often */GL_STATIC_DRAW);
+		/* where is the data stored on the CPU? */index_sets.data(),
+		/* inform OpenGL that the data is modified once, but used often */GL_STATIC_DRAW);
 
 	data.indices_nb = /*! \todo how many indices do we have? */ index_sets.size() * 3u;
 
@@ -157,37 +157,37 @@ parametric_shapes::createSphere(float const radius, unsigned int const longitude
 
 	// Generate vertices iteratively
 	size_t index = 0u;
-	for(unsigned int i = 0u; i < longitude_slice_vertices_count; i++){
+	for (unsigned int i = 0u; i < longitude_slice_vertices_count; i++) {
 		float const cos_theta = std::cos(theta);
 		float const sin_theta = std::sin(theta);
 
 		phi = 0.0f; // Reset when evaluated for one theta!
 
-		for(unsigned int j = 0u; j < latitude_slice_vertices_count; j++){
+		for (unsigned int j = 0u; j < latitude_slice_vertices_count; j++) {
 			float const cos_phi = std::cos(phi);
 			float const sin_phi = std::sin(phi);
 
 			// Vertices:
-			vertices[index] = glm::vec3( radius * sin_theta * sin_phi,
-			                             -radius * cos_phi,
-			                             radius * cos_theta * sin_phi);
-			
+			vertices[index] = glm::vec3(radius * sin_theta * sin_phi,
+				-radius * cos_phi,
+				radius * cos_theta * sin_phi);
+
 			// Texture coordinates:
-			texcoords[index] = glm::vec3( static_cast<float>(j) / (static_cast<float>(latitude_slice_vertices_count)),
-			                              static_cast<float>(i) / (static_cast<float>(longitude_slice_vertices_count)),
-			                              0.0f );
-			
+			texcoords[index] = glm::vec3(static_cast<float>(j) / (static_cast<float>(latitude_slice_vertices_count)),
+				static_cast<float>(i) / (static_cast<float>(longitude_slice_vertices_count)),
+				0.0f);
+
 			// Tangent:
-			auto t = glm::vec3( radius * cos_theta * sin_phi,
-								0, 
-								-radius * sin_theta * sin_phi );
+			auto t = glm::vec3(radius * cos_theta * sin_phi,
+				0,
+				-radius * sin_theta * sin_phi);
 			t = glm::normalize(t);
 			tangents[index] = t;
 
 			// Binormal:
-			auto b = glm::vec3( radius * sin_theta * cos_phi,
-								radius * sin_phi,
-								radius * cos_theta * cos_phi );
+			auto b = glm::vec3(radius * sin_theta * cos_phi,
+				radius * sin_phi,
+				radius * cos_theta * cos_phi);
 			b = glm::normalize(b);
 			binormals[index] = b;
 
@@ -200,7 +200,7 @@ parametric_shapes::createSphere(float const radius, unsigned int const longitude
 		}
 
 		theta += d_theta;
-		
+
 	}
 
 	// Create index array:
@@ -208,16 +208,16 @@ parametric_shapes::createSphere(float const radius, unsigned int const longitude
 
 	// Generate indices iteratively:
 	index = 0u;
-	for(unsigned int i = 0u; i < (static_cast<float>(latitude_slice_edges_count)); i++){
-		for(unsigned int j = 0u; j < (static_cast<float>(longitude_slice_edges_count)); j++){
+	for (unsigned int i = 0u; i < (static_cast<float>(latitude_slice_edges_count)); i++) {
+		for (unsigned int j = 0u; j < (static_cast<float>(longitude_slice_edges_count)); j++) {
 			index_sets[index] = glm::uvec3(longitude_slice_vertices_count * (i + 0u) + (j + 0u),
-			                               longitude_slice_vertices_count * (i + 0u) + (j + 1u),
-			                               longitude_slice_vertices_count * (i + 1u) + (j + 1u));
+				longitude_slice_vertices_count * (i + 0u) + (j + 1u),
+				longitude_slice_vertices_count * (i + 1u) + (j + 1u));
 			++index;
 
 			index_sets[index] = glm::uvec3(longitude_slice_vertices_count * (i + 0u) + (j + 0u),
-			                               longitude_slice_vertices_count * (i + 1u) + (j + 1u),
-			                               longitude_slice_vertices_count * (i + 1u) + (j + 0u));
+				longitude_slice_vertices_count * (i + 1u) + (j + 1u),
+				longitude_slice_vertices_count * (i + 1u) + (j + 0u));
 			++index;
 		}
 	}
@@ -238,11 +238,11 @@ parametric_shapes::createSphere(float const radius, unsigned int const longitude
 	auto const binormals_offset = tangents_offset + tangents_size;
 	auto const binormals_size = static_cast<GLsizeiptr>(binormals.size() * sizeof(glm::vec3));
 	auto const bo_size = static_cast<GLsizeiptr>(vertices_size
-	                                            +normals_size
-	                                            +texcoords_size
-	                                            +tangents_size
-	                                            +binormals_size
-	                                            );
+		+ normals_size
+		+ texcoords_size
+		+ tangents_size
+		+ binormals_size
+		);
 	glGenBuffers(1, &data.bo);
 	assert(data.bo != 0u);
 	glBindBuffer(GL_ARRAY_BUFFER, data.bo);
@@ -287,9 +287,9 @@ parametric_shapes::createSphere(float const radius, unsigned int const longitude
 
 bonobo::mesh_data
 parametric_shapes::createTorus(float const major_radius,
-                               float const minor_radius,
-                               unsigned int const major_split_count,
-                               unsigned int const minor_split_count)
+	float const minor_radius,
+	unsigned int const major_split_count,
+	unsigned int const minor_split_count)
 {
 	//! \todo (Optional) Implement this function
 	return bonobo::mesh_data();
@@ -298,9 +298,9 @@ parametric_shapes::createTorus(float const major_radius,
 
 bonobo::mesh_data
 parametric_shapes::createCircleRing(float const radius,
-                                    float const spread_length,
-                                    unsigned int const circle_split_count,
-                                    unsigned int const spread_split_count)
+	float const spread_length,
+	unsigned int const circle_split_count,
+	unsigned int const spread_split_count)
 {
 	auto const circle_slice_edges_count = circle_split_count + 1u;
 	auto const spread_slice_edges_count = spread_split_count + 1u;
@@ -308,10 +308,10 @@ parametric_shapes::createCircleRing(float const radius,
 	auto const spread_slice_vertices_count = spread_slice_edges_count + 1u;
 	auto const vertices_nb = circle_slice_vertices_count * spread_slice_vertices_count;
 
-	auto vertices  = std::vector<glm::vec3>(vertices_nb);
-	auto normals   = std::vector<glm::vec3>(vertices_nb);
+	auto vertices = std::vector<glm::vec3>(vertices_nb);
+	auto normals = std::vector<glm::vec3>(vertices_nb);
 	auto texcoords = std::vector<glm::vec3>(vertices_nb);
-	auto tangents  = std::vector<glm::vec3>(vertices_nb);
+	auto tangents = std::vector<glm::vec3>(vertices_nb);
 	auto binormals = std::vector<glm::vec3>(vertices_nb);
 
 	float const spread_start = radius - 0.5f * spread_length;
@@ -329,13 +329,13 @@ parametric_shapes::createCircleRing(float const radius,
 		for (unsigned int j = 0u; j < spread_slice_vertices_count; ++j) {
 			// vertex
 			vertices[index] = glm::vec3(distance_to_centre * cos_theta,
-			                            distance_to_centre * sin_theta,
-			                            0.0f);
+				distance_to_centre * sin_theta,
+				0.0f);
 
 			// texture coordinates
 			texcoords[index] = glm::vec3(static_cast<float>(j) / (static_cast<float>(spread_slice_vertices_count)),
-			                             static_cast<float>(i) / (static_cast<float>(circle_slice_vertices_count)),
-			                             0.0f);
+				static_cast<float>(i) / (static_cast<float>(circle_slice_vertices_count)),
+				0.0f);
 
 			// tangent
 			auto const t = glm::vec3(cos_theta, sin_theta, 0.0f);
@@ -366,13 +366,13 @@ parametric_shapes::createCircleRing(float const radius,
 		for (unsigned int j = 0u; j < spread_slice_edges_count; ++j)
 		{
 			index_sets[index] = glm::uvec3(spread_slice_vertices_count * (i + 0u) + (j + 0u),
-			                               spread_slice_vertices_count * (i + 0u) + (j + 1u),
-			                               spread_slice_vertices_count * (i + 1u) + (j + 1u));
+				spread_slice_vertices_count * (i + 0u) + (j + 1u),
+				spread_slice_vertices_count * (i + 1u) + (j + 1u));
 			++index;
 
 			index_sets[index] = glm::uvec3(spread_slice_vertices_count * (i + 0u) + (j + 0u),
-			                               spread_slice_vertices_count * (i + 1u) + (j + 1u),
-			                               spread_slice_vertices_count * (i + 1u) + (j + 0u));
+				spread_slice_vertices_count * (i + 1u) + (j + 1u),
+				spread_slice_vertices_count * (i + 1u) + (j + 0u));
 			++index;
 		}
 	}
@@ -393,11 +393,11 @@ parametric_shapes::createCircleRing(float const radius,
 	auto const binormals_offset = tangents_offset + tangents_size;
 	auto const binormals_size = static_cast<GLsizeiptr>(binormals.size() * sizeof(glm::vec3));
 	auto const bo_size = static_cast<GLsizeiptr>(vertices_size
-	                                            +normals_size
-	                                            +texcoords_size
-	                                            +tangents_size
-	                                            +binormals_size
-	                                            );
+		+ normals_size
+		+ texcoords_size
+		+ tangents_size
+		+ binormals_size
+		);
 	glGenBuffers(1, &data.bo);
 	assert(data.bo != 0u);
 	glBindBuffer(GL_ARRAY_BUFFER, data.bo);
