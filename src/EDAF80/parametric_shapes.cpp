@@ -178,7 +178,7 @@ parametric_shapes::createSphere(float const radius, unsigned int const longitude
 				0.0f);
 
 			// Tangent:
-			// Divide by sin_phi -> Remove sin_phi from equation.
+			// Divide the tangent by sin_phi -> Remove sin_phi from equation.
 			// This is done to prevent the value of the tangent = 0 at the south pole.
 			auto t = glm::vec3(radius * cos_theta,
 				0,
