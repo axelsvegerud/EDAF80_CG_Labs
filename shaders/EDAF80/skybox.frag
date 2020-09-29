@@ -2,6 +2,7 @@
 
 uniform samplerCube my_cube_map;
 
+
 in VS_OUT {
 	vec3 normal;
 } fs_in;
