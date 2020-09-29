@@ -83,7 +83,7 @@ edaf80::Assignment3::run()
 											 { ShaderType::fragment, "EDAF80/skybox.frag" } },
 											 skybox_shader);
 	if (skybox_shader == 0u)
-		LogError("Failed to load diffuse shader");
+		LogError("Failed to load skybox shader");
 
 	// My phong shader:
 	GLuint phong_shader = 0u;
@@ -92,7 +92,16 @@ edaf80::Assignment3::run()
 											 { ShaderType::fragment, "EDAF80/phong.frag" } },
 											 phong_shader);
 	if (phong_shader == 0u)
-		LogError("Failed to load diffuse shader");
+		LogError("Failed to load phong shader");
+
+	// My normal map shader:
+	GLuint normal_map_shader = 0u;
+	program_manager.CreateAndRegisterProgram("Normal map",
+											{ { ShaderType::vertex, "EDAF80/normal_map.vert" },
+		  									{ ShaderType::fragment, "EDAF80/normal_map.frag" } },
+											normal_map_shader);
+	if (normal_map_shader == 0u)
+		LogError("Failed to load normal map shader");
 
 
 	auto light_position = glm::vec3(-2.0f, 4.0f, 2.0f);
