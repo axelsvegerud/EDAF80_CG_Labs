@@ -12,7 +12,8 @@ out VS_OUT {
 } vs_out;
 
 
-void main() {
+void main()
+{
 	vs_out.normal = normal;
 
 	gl_Position = vertex_world_to_clip * vertex_model_to_world * vec4(vertex, 1.0);
