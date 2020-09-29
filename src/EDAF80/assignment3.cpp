@@ -85,6 +85,15 @@ edaf80::Assignment3::run()
 	if (skybox_shader == 0u)
 		LogError("Failed to load diffuse shader");
 
+	// My phong shader:
+	GLuint phong_shader = 0u;
+	program_manager.CreateAndRegisterProgram("Phong",
+											 { { ShaderType::vertex, "EDAF80/phong.vert" },
+											 { ShaderType::fragment, "EDAF80/phong.frag" } },
+											 phong_shader);
+	if (phong_shader == 0u)
+		LogError("Failed to load diffuse shader");
+
 
 	auto light_position = glm::vec3(-2.0f, 4.0f, 2.0f);
 	auto const set_uniforms = [&light_position](GLuint program){
