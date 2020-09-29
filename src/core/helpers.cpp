@@ -426,7 +426,7 @@ bonobo::loadTextureCubeMap(std::string const& posx, std::string const& negx,
 		return 0u;
 	}
 
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
 		0,
 		GL_RGBA,
 		static_cast<GLsizei>(width),
