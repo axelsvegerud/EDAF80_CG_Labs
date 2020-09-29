@@ -126,7 +126,7 @@ edaf80::Assignment3::run()
 
 	Node skybox;
 	skybox.set_geometry(skybox_shape);
-	skybox.set_program(&fallback_shader, set_uniforms);
+	skybox.set_program(&skybox_shader, set_uniforms);
 	skybox.add_texture("my_cube_map", my_cube_map_id, GL_TEXTURE_CUBE_MAP);
 
 	auto demo_shape = parametric_shapes::createSphere(1.5f, 40u, 40u);
@@ -138,6 +138,7 @@ edaf80::Assignment3::run()
 	Node demo_sphere;
 	demo_sphere.set_geometry(demo_shape);
 	demo_sphere.set_program(&fallback_shader, set_uniforms);
+	//demo_sphere.add_texture("my_cube_map", my_cube_map_id, GL_TEXTURE_CUBE_MAP);
 
 
 	glClearDepthf(1.0f);
