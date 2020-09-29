@@ -107,13 +107,13 @@ edaf80::Assignment3::run()
 		glUniform1f(glGetUniformLocation(program, "shininess"), shininess);
 	};
 
-	auto my_cube_map_id = bonobo::loadTextureCubeMap("cubemaps/Maskonaive2/posx.jpg",
-													 "cubemaps/Maskonaive2/negx.jpg",
-													 "cubemaps/Maskonaive2/posy.jpg",
-													 "cubemaps/Maskonaive2/negy.jpg",
-													 "cubemaps/Maskonaive2/posz.jpg",
-													 "cubemaps/Maskonaive2/negz.jpg",
-													 true);
+	auto my_cube_map_id= bonobo::loadTextureCubeMap(config::resources_path("cubemaps/Maskonaive2/posx.jpg"),
+													config::resources_path("cubemaps/Maskonaive2/negx.jpg"),
+													config::resources_path("cubemaps/Maskonaive2/posy.jpg"),
+													config::resources_path("cubemaps/Maskonaive2/negy.jpg"),
+													config::resources_path("cubemaps/Maskonaive2/posz.jpg"),
+													config::resources_path("cubemaps/Maskonaive2/negz.jpg"),
+													true);
 
 	//
 	// Set up the two spheres used.
