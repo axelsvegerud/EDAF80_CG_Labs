@@ -125,6 +125,10 @@ edaf80::Assignment3::run()
 		glUniform1f(glGetUniformLocation(program, "shininess"), shininess);
 	};
 
+	auto my_normal_map_id = bonobo::loadTexture2D(config::resources_path("textures/cobblestone_floor_08_nor_2k.jpg"), true);
+
+	auto my_diffuse_map_id = bonobo::loadTexture2D(config::resources_path("textures/cobblestone_floor_08_diff_2k.jpg"), true);
+
 	auto my_cube_map_id= bonobo::loadTextureCubeMap(config::resources_path("cubemaps/Maskonaive2/posx.jpg"),
 													config::resources_path("cubemaps/Maskonaive2/negx.jpg"),
 													config::resources_path("cubemaps/Maskonaive2/posy.jpg"),
@@ -155,8 +159,10 @@ edaf80::Assignment3::run()
 
 	Node demo_sphere;
 	demo_sphere.set_geometry(demo_shape);
-	demo_sphere.set_program(&fallback_shader, set_uniforms);
-	//demo_sphere.add_texture("my_cube_map", my_cube_map_id, GL_TEXTURE_CUBE_MAP);
+	demo_sphere.set_program(&fallback_shader, phong_set_uniforms);
+
+	demo_sphere.add_texture("normal_map", my_normal_map_id, GL_TEXTURE_2D);
+	demo_sphere.add_texture("diffuse_map", my_diffuse_map_id, GL_TEXTURE_2D);
 
 
 	glClearDepthf(1.0f);
