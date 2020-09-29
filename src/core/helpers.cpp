@@ -92,7 +92,7 @@ bonobo::loadObjects(std::string const& filename)
 		texture_bindings bindings;
 		auto const material = assimp_scene->mMaterials[i];
 
-		auto const process_texture = [&bindings,&material,i,&parent_folder](aiTextureType type, std::string const& type_as_str, std::string const& name){
+		auto const process_texture = [&bindings, &material, i, &parent_folder](aiTextureType type, std::string const& type_as_str, std::string const& name) {
 			if (material->GetTextureCount(type)) {
 				if (material->GetTextureCount(type) > 1)
 					LogWarning("Material %d has more than one %s texture: discarding all but the first one.", i, type_as_str.c_str());
@@ -104,10 +104,10 @@ bonobo::loadObjects(std::string const& filename)
 			}
 		};
 
-		process_texture(aiTextureType_DIFFUSE,  "diffuse",  "diffuse_texture");
+		process_texture(aiTextureType_DIFFUSE, "diffuse", "diffuse_texture");
 		process_texture(aiTextureType_SPECULAR, "specular", "specular_texture");
-		process_texture(aiTextureType_NORMALS,  "normals",  "normals_texture");
-		process_texture(aiTextureType_OPACITY,  "opacity",  "opacity_texture");
+		process_texture(aiTextureType_NORMALS, "normals", "normals_texture");
+		process_texture(aiTextureType_OPACITY, "opacity", "opacity_texture");
 
 		materials_bindings.push_back(bindings);
 	}
@@ -121,9 +121,9 @@ bonobo::loadObjects(std::string const& filename)
 			LogError("Unsupported object \"%s\": has no faces", assimp_object_mesh->mName.C_Str());
 			continue;
 		}
-		if ((assimp_object_mesh->mPrimitiveTypes & ~static_cast<uint32_t>(aiPrimitiveType_POINT))    != 0u
-		 && (assimp_object_mesh->mPrimitiveTypes & ~static_cast<uint32_t>(aiPrimitiveType_LINE))     != 0u
-		 && (assimp_object_mesh->mPrimitiveTypes & ~static_cast<uint32_t>(aiPrimitiveType_TRIANGLE)) != 0u) {
+		if ((assimp_object_mesh->mPrimitiveTypes & ~static_cast<uint32_t>(aiPrimitiveType_POINT)) != 0u
+			&& (assimp_object_mesh->mPrimitiveTypes & ~static_cast<uint32_t>(aiPrimitiveType_LINE)) != 0u
+			&& (assimp_object_mesh->mPrimitiveTypes & ~static_cast<uint32_t>(aiPrimitiveType_TRIANGLE)) != 0u) {
 			LogError("Unsupported object \"%s\": uses multiple primitive types", assimp_object_mesh->mName.C_Str());
 			continue;
 		}
@@ -162,11 +162,11 @@ bonobo::loadObjects(std::string const& filename)
 		auto const binormals_size = assimp_object_mesh->HasTangentsAndBitangents() ? vertices_size : 0u;
 
 		auto const bo_size = static_cast<GLsizeiptr>(vertices_size
-		                                            +normals_size
-		                                            +texcoords_size
-		                                            +tangents_size
-		                                            +binormals_size
-		                                            );
+			+ normals_size
+			+ texcoords_size
+			+ tangents_size
+			+ binormals_size
+			);
 		glGenBuffers(1, &object.bo);
 		assert(object.bo != 0u);
 		glBindBuffer(GL_ARRAY_BUFFER, object.bo);
@@ -230,9 +230,9 @@ bonobo::loadObjects(std::string const& filename)
 
 		objects.push_back(object);
 
-//		LogInfo("Loaded object \"%s\" with normals:%d, tangents&bitangents:%d, texcoords:%d",
-//		        assimp_object_mesh->mName.C_Str(), assimp_object_mesh->HasNormals(),
-//		        assimp_object_mesh->HasTangentsAndBitangents(), assimp_object_mesh->HasTextureCoords(0));
+		//		LogInfo("Loaded object \"%s\" with normals:%d, tangents&bitangents:%d, texcoords:%d",
+		//		        assimp_object_mesh->mName.C_Str(), assimp_object_mesh->HasNormals(),
+		//		        assimp_object_mesh->HasTangentsAndBitangents(), assimp_object_mesh->HasTextureCoords(0));
 	}
 
 	return objects;
@@ -285,9 +285,9 @@ bonobo::loadTexture2D(std::string const& filename, bool generate_mipmap)
 
 GLuint
 bonobo::loadTextureCubeMap(std::string const& posx, std::string const& negx,
-                           std::string const& posy, std::string const& negy,
-                           std::string const& posz, std::string const& negz,
-                           bool generate_mipmap)
+	std::string const& posy, std::string const& negy,
+	std::string const& posz, std::string const& negz,
+	bool generate_mipmap)
 {
 	GLuint texture = 0u;
 	// Create an OpenGL texture object. Similarly to `glGenVertexArrays()`
@@ -336,106 +336,106 @@ bonobo::loadTextureCubeMap(std::string const& posx, std::string const& negx,
 	// start by filling the face sitting on the negative side of the
 	// x-axis by specifying GL_TEXTURE_CUBE_MAP_NEGATIVE_X.
 	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
-	             /* mipmap level, you'll see that in EDAN35 */0,
-	             /* how are the components internally stored */GL_RGBA,
-	             /* the width of the cube map's face */static_cast<GLsizei>(width),
-	             /* the height of the cube map's face */static_cast<GLsizei>(height),
-	             /* must always be 0 */0,
-	             /* the format of the pixel data: which components are available */GL_RGBA,
-	             /* the type of each component */GL_UNSIGNED_BYTE,
-	             /* the pointer to the actual data on the CPU */reinterpret_cast<GLvoid const*>(data.data()));
+		/* mipmap level, you'll see that in EDAN35 */0,
+		/* how are the components internally stored */GL_RGBA,
+		/* the width of the cube map's face */static_cast<GLsizei>(width),
+		/* the height of the cube map's face */static_cast<GLsizei>(height),
+		/* must always be 0 */0,
+		/* the format of the pixel data: which components are available */GL_RGBA,
+		/* the type of each component */GL_UNSIGNED_BYTE,
+		/* the pointer to the actual data on the CPU */reinterpret_cast<GLvoid const*>(data.data()));
 
 	//! \todo repeat now the texture filling for the 5 remaining faces
 
 	// Positive X:
-	auto data = getTextureData(posx, width, height, false);
+	data = getTextureData(posx, width, height, false);
 	if (data.empty()) {
 		glDeleteTextures(1, &texture);
 		return 0u;
 	}
 
 	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X,
-				 0,
-				 GL_RGBA,
-				 static_cast<GLsizei>(width),
-				 static_cast<GLsizei>(height),
-				 0,
-				 GL_RGBA,
-				 GL_UNSIGNED_BYTE,
-				 reinterpret_cast<GLvoid const*>(data.data()))
-				);
+		0,
+		GL_RGBA,
+		static_cast<GLsizei>(width),
+		static_cast<GLsizei>(height),
+		0,
+		GL_RGBA,
+		GL_UNSIGNED_BYTE,
+		reinterpret_cast<GLvoid const*>(data.data())
+	);
 
 	// Negative Y:
-	auto data = getTextureData(negy, width, height, false);
+	data = getTextureData(negy, width, height, false);
 	if (data.empty()) {
 		glDeleteTextures(1, &texture);
 		return 0u;
 	}
 
 	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
-				 0,
-				 GL_RGBA,
-				 static_cast<GLsizei>(width),
-				 static_cast<GLsizei>(height),
-				 0,
-				 GL_RGBA,
-				 GL_UNSIGNED_BYTE,
-				 reinterpret_cast<GLvoid const*>(data.data()))
-				);
+		0,
+		GL_RGBA,
+		static_cast<GLsizei>(width),
+		static_cast<GLsizei>(height),
+		0,
+		GL_RGBA,
+		GL_UNSIGNED_BYTE,
+		reinterpret_cast<GLvoid const*>(data.data())
+	);
 
 	// Positive Y:
-	auto data = getTextureData(posy, width, height, false);
+	data = getTextureData(posy, width, height, false);
 	if (data.empty()) {
 		glDeleteTextures(1, &texture);
 		return 0u;
 	}
 
 	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
-				 0,
-				 GL_RGBA,
-				 static_cast<GLsizei>(width),
-				 static_cast<GLsizei>(height),
-				 0,
-				 GL_RGBA,
-				 GL_UNSIGNED_BYTE,
-				 reinterpret_cast<GLvoid const*>(data.data()))
-				);
-	
+		0,
+		GL_RGBA,
+		static_cast<GLsizei>(width),
+		static_cast<GLsizei>(height),
+		0,
+		GL_RGBA,
+		GL_UNSIGNED_BYTE,
+		reinterpret_cast<GLvoid const*>(data.data())
+	);
+
 	// Negative Z:
-	auto data = getTextureData(negz, width, height, false);
+	data = getTextureData(negz, width, height, false);
 	if (data.empty()) {
 		glDeleteTextures(1, &texture);
 		return 0u;
 	}
 
 	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
-				 0,
-				 GL_RGBA,
-				 static_cast<GLsizei>(width),
-				 static_cast<GLsizei>(height),
-				 0,
-				 GL_RGBA,
-				 GL_UNSIGNED_BYTE,
-				 reinterpret_cast<GLvoid const*>(data.data()))
-				);
+		0,
+		GL_RGBA,
+		static_cast<GLsizei>(width),
+		static_cast<GLsizei>(height),
+		0,
+		GL_RGBA,
+		GL_UNSIGNED_BYTE,
+		reinterpret_cast<GLvoid const*>(data.data())
+	);
 
 	// Negative Z:
-	auto data = getTextureData(negz, width, height, false);
+	data = getTextureData(posz, width, height, false);
 	if (data.empty()) {
 		glDeleteTextures(1, &texture);
 		return 0u;
 	}
 
 	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
-				 0,
-				 GL_RGBA,
-				 static_cast<GLsizei>(width),
-				 static_cast<GLsizei>(height),
-				 0,
-				 GL_RGBA,
-				 GL_UNSIGNED_BYTE,
-				 reinterpret_cast<GLvoid const*>(data.data()))
-				);
+		0,
+		GL_RGBA,
+		static_cast<GLsizei>(width),
+		static_cast<GLsizei>(height),
+		0,
+		GL_RGBA,
+		GL_UNSIGNED_BYTE,
+		reinterpret_cast<GLvoid const*>(data.data())
+	);
 
 
 	if (generate_mipmap)
@@ -474,10 +474,10 @@ bonobo::displayTexture(glm::vec2 const& lower_left, glm::vec2 const& upper_right
 		return static_cast<GLint>((coord + 1.0f) / 2.0f * size);
 	};
 	auto const viewport_origin = glm::ivec2(relative_to_absolute(lower_left.x, window_size.x),
-	                                        relative_to_absolute(lower_left.y, window_size.y));
+		relative_to_absolute(lower_left.y, window_size.y));
 	auto const viewport_size = glm::ivec2(relative_to_absolute(upper_right.x, window_size.x),
-	                                      relative_to_absolute(upper_right.y, window_size.y))
-	                         - viewport_origin;
+		relative_to_absolute(upper_right.y, window_size.y))
+		- viewport_origin;
 
 	glViewport(viewport_origin.x, viewport_origin.y, viewport_size.x, viewport_size.y);
 	glUseProgram(local::fullscreen_shader);
@@ -499,7 +499,7 @@ bonobo::displayTexture(glm::vec2 const& lower_left, glm::vec2 const& upper_right
 GLuint
 bonobo::createFBO(std::vector<GLuint> const& color_attachments, GLuint depth_attachment)
 {
-	auto const attach = [](GLenum attach_point, GLuint attachment){
+	auto const attach = [](GLenum attach_point, GLuint attachment) {
 		glFramebufferTexture2D(GL_FRAMEBUFFER, attach_point, GL_TEXTURE_2D, attachment, 0);
 		auto const status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 		if (status != GL_FRAMEBUFFER_COMPLETE)
@@ -520,7 +520,7 @@ bonobo::createFBO(std::vector<GLuint> const& color_attachments, GLuint depth_att
 }
 
 GLuint
-bonobo::createSampler(std::function<void (GLuint)> const& setup)
+bonobo::createSampler(std::function<void(GLuint)> const& setup)
 {
 	GLuint sampler = 0u;
 	glGenSamplers(1, &sampler);
@@ -542,8 +542,8 @@ bonobo::uiSelectPolygonMode(std::string const& label, enum polygon_mode_t& polyg
 {
 	auto polygon_mode_index = static_cast<int>(polygon_mode);
 	bool was_modified = ImGui::Combo(label.c_str(), &polygon_mode_index,
-	                                 local::polygon_mode_labels.data(),
-	                                 local::polygon_mode_labels.size());
+		local::polygon_mode_labels.data(),
+		local::polygon_mode_labels.size());
 	polygon_mode = static_cast<polygon_mode_t>(polygon_mode_index);
 	return was_modified;
 }
@@ -552,14 +552,14 @@ void
 bonobo::changePolygonMode(enum polygon_mode_t const polygon_mode) noexcept
 {
 	switch (polygon_mode) {
-		case bonobo::polygon_mode_t::fill:
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-			break;
-		case bonobo::polygon_mode_t::line:
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-			break;
-		case bonobo::polygon_mode_t::point:
-			glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-			break;
+	case bonobo::polygon_mode_t::fill:
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		break;
+	case bonobo::polygon_mode_t::line:
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		break;
+	case bonobo::polygon_mode_t::point:
+		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+		break;
 	}
 }
