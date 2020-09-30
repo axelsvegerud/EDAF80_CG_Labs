@@ -122,12 +122,12 @@ edaf80::Assignment3::run()
 
 	auto my_diffuse_map_id = bonobo::loadTexture2D(config::resources_path("textures/cobblestone_floor_08_diff_2k.jpg"), true);
 
-	auto my_cube_map_id= bonobo::loadTextureCubeMap(config::resources_path("cubemaps/Maskonaive2/posx.jpg"),
-													config::resources_path("cubemaps/Maskonaive2/negx.jpg"),
-													config::resources_path("cubemaps/Maskonaive2/posy.jpg"),
-													config::resources_path("cubemaps/Maskonaive2/negy.jpg"),
-													config::resources_path("cubemaps/Maskonaive2/posz.jpg"),
-													config::resources_path("cubemaps/Maskonaive2/negz.jpg"),
+	auto my_cube_map_id= bonobo::loadTextureCubeMap(config::resources_path("cubemaps/Teide/posx.jpg"),
+													config::resources_path("cubemaps/Teide/negx.jpg"),
+													config::resources_path("cubemaps/Teide/posy.jpg"),
+													config::resources_path("cubemaps/Teide/negy.jpg"),
+													config::resources_path("cubemaps/Teide/posz.jpg"),
+													config::resources_path("cubemaps/Teide/negz.jpg"),
 													true);
 
 	//
