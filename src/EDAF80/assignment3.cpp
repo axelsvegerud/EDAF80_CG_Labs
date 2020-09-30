@@ -94,15 +94,6 @@ edaf80::Assignment3::run()
 	if (phong_shader == 0u)
 		LogError("Failed to load phong shader");
 
-	// My normal map shader:
-	GLuint normal_map_shader = 0u;
-	program_manager.CreateAndRegisterProgram("Normal map",
-											{ { ShaderType::vertex, "EDAF80/normal_map.vert" },
-		  									{ ShaderType::fragment, "EDAF80/normal_map.frag" } },
-											normal_map_shader);
-	if (normal_map_shader == 0u)
-		LogError("Failed to load normal map shader");
-
 
 	auto light_position = glm::vec3(-2.0f, 4.0f, 2.0f);
 	auto const set_uniforms = [&light_position](GLuint program){
@@ -125,6 +116,8 @@ edaf80::Assignment3::run()
 		glUniform1f(glGetUniformLocation(program, "shininess"), shininess);
 	};
 
+
+	// Mapping ID:
 	auto my_normal_map_id = bonobo::loadTexture2D(config::resources_path("textures/cobblestone_floor_08_nor_2k.jpg"), true);
 
 	auto my_diffuse_map_id = bonobo::loadTexture2D(config::resources_path("textures/cobblestone_floor_08_diff_2k.jpg"), true);
@@ -161,9 +154,8 @@ edaf80::Assignment3::run()
 	demo_sphere.set_geometry(demo_shape);
 	demo_sphere.set_program(&fallback_shader, phong_set_uniforms);
 
-	demo_sphere.add_texture("normal_map", my_normal_map_id, GL_TEXTURE_2D);
 	demo_sphere.add_texture("diffuse_map", my_diffuse_map_id, GL_TEXTURE_2D);
-
+	demo_sphere.add_texture("normal_map", my_normal_map_id, GL_TEXTURE_2D);
 
 	glClearDepthf(1.0f);
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
