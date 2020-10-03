@@ -42,6 +42,11 @@ namespace parametric_shapes
 	//!                             the minimum for getting a 3-D shape.
 	//! @return wrapper around OpenGL objects' name containing the geometry
 	//!         data
+
+	bonobo::mesh_data createTessQuad(float const width, float const height,
+	                             unsigned int const horizontal_split_count = 0u,
+	                             unsigned int const vertical_split_count = 0u);
+
 	bonobo::mesh_data createSphere(float const radius,
 	                               unsigned int const longitude_split_count,
 	                               unsigned int const latitude_split_count);
