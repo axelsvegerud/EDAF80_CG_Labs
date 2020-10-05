@@ -197,7 +197,7 @@ parametric_shapes::createTessQuad(float const width, float const height,
 	}
 
 	// Create indices array:
-	auto index_sets = std::vector<glm::uvec3>(2u * ((static_cast<float>(horizontal_slice_edge_count)) - 1u) * ((static_cast<float>(vertical_slice_edge_count)) - 1u));
+	auto index_sets = std::vector<glm::uvec3>(2u * ((static_cast<float>(horizontal_slice_edge_count))) * ((static_cast<float>(vertical_slice_edge_count))));
 
 	// Generate indices iteratively:
 	index = 0u;
@@ -216,13 +216,6 @@ parametric_shapes::createTessQuad(float const width, float const height,
 	}
 
 	bonobo::mesh_data data;
-
-	if (horizontal_split_count > 0u || horizontal_split_count > 0u)
-	{
-		LogError("parametric_shapes::createQuad() does not support tesselation.");
-		return data;
-	}
-
 	glGenVertexArrays(1, &data.vao);
 	assert(data.vao != 0u);
 	glBindVertexArray(data.vao);
