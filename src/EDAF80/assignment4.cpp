@@ -61,6 +61,17 @@ edaf80::Assignment4::run()
 	// Todo: Load your geometry
 	//
 
+	// Load the quad:
+	auto water_shape = parametric_shapes::createTessQuad(100, 100, 50, 50);
+	if (water_shape.vao == 0u) {
+		LogError("Failed to retrieve the mesh for the skybox");
+		return;
+	}
+
+	auto water = Node();
+	water.set_geometry(water_shape);
+	water.set_program(&fallback_shader);
+
 	glClearDepthf(1.0f);
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
@@ -134,6 +145,7 @@ edaf80::Assignment4::run()
 			//
 			// Todo: Render all your geometry here.
 			//
+			water.render(mCamera.GetWorldToClipMatrix());
 		}
 
 
