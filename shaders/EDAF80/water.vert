@@ -9,7 +9,9 @@ uniform mat4 vertex_world_to_clip;
 
 out VS_OUT {
 	vec3 vertex;
-	vec3 normal;
+	vec3 normal_water;
+	vec3 tangent_water;
+	vec3 binormal_water;
 } vs_out;
 
 uniform	float amplitude[2] = { 1.0, 0.5 };
@@ -23,15 +25,31 @@ float wave(vec2 position, vec2 direction, float amplitude, float frequency, floa
 	return amplitude * pow(sin(dot(position, direction) * frequency + time * phase) * 0.5 + 0.5, sharpness);
 }
 
-void main()
-{
+float derivative(vec2 position, vec2 direction, float amplitude, float frequency, float phase, float sharpness, float time){
+	return 0.5 * sharpness * frequency * amplitude * (pow(sin(dot(direction, position) * frequency + time * phase) * 0.5 + 0.5, sharpness - 1)) * cos(dot(direction, position) * frequency + time * phase);
+}
+
+void main() {
 
 	vec3 displaced_vertex = vertex;
+
 	displaced_vertex.y += wave(vertex.xz, direction[0], amplitude[0], frequency[0], phase[0], sharpness[0], ellapsed_time);
 	displaced_vertex.y += wave(vertex.xz, direction[1], amplitude[1], frequency[1], phase[1], sharpness[1], ellapsed_time);
 
+	float dHdx = 0.0f;
+	float dHdz = 0.0f;
+
+	dHdx = derivative(vertex.xz, direction[0], amplitude[0], frequency[0], phase[0], sharpness[0], ellapsed_time) * direction[0].x + 
+		derivative(vertex.xz, direction[1], amplitude[1], frequency[1], phase[1], sharpness[1], ellapsed_time) * direction[1].x;
+	
+	dHdz = derivative(vertex.xz, direction[0], amplitude[0], frequency[0], phase[0], sharpness[0], ellapsed_time) * direction[0].y + 
+		derivative(vertex.xz, direction[1], amplitude[1], frequency[1], phase[1], sharpness[1], ellapsed_time) * direction[1].y;
+	
+
 	vs_out.vertex = vec3(vertex_model_to_world * vec4(displaced_vertex, 1.0));
-	vs_out.normal = vec3(normal_model_to_world * vec4(normal, 0.0));
+	vs_out.normal_water = vec3(-dHdx, 1.0f, -dHdz);
+	vs_out.binormal_water = vec3(0.0, dHdz, 1.0);
+	vs_out.tangent_water = vec3(1.0, dHdx, 0.0);
 
 	gl_Position = vertex_world_to_clip * vertex_model_to_world * vec4(displaced_vertex, 1.0);
 }
