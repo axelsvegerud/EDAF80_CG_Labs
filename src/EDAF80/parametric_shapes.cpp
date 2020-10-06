@@ -133,85 +133,49 @@ parametric_shapes::createQuad(float const width, float const height,
 
 
 bonobo::mesh_data
-parametric_shapes::createTessQuad(float const width, float const height,
-	unsigned int const horizontal_split_count,
-	unsigned int const vertical_split_count)
-{
+parametric_shapes::createTessQuad(float const width, float const height, unsigned int const horizontal_split_count, unsigned int const vertical_split_count) {
 
-
-	auto const horizontal_slice_edge_count = horizontal_split_count + 1u;
-	auto const horizontal_slice_vertices_count = horizontal_slice_edge_count + 1u;
-	auto const vertical_slice_edge_count = vertical_split_count + 1u;
-	auto const vertical_slice_vertices_count = vertical_slice_edge_count + 1u;
-
-	auto const vertices_nb = horizontal_slice_vertices_count * vertical_slice_vertices_count;
+	unsigned int vertices_nb = horizontal_split_count * vertical_split_count;
 
 	auto vertices = std::vector<glm::vec3>(vertices_nb);
 	auto normals = std::vector<glm::vec3>(vertices_nb);
-	auto texcoords = std::vector<glm::vec3>(vertices_nb);
 	auto tangents = std::vector<glm::vec3>(vertices_nb);
-	auto binormals = std::vector<glm::vec3>(vertices_nb);	
+	auto binormals = std::vector<glm::vec3>(vertices_nb);
+	auto texcoords = std::vector<glm::vec3>(vertices_nb);
 
-	// Vertical -> h
-	// Horizontal -> w
-	
-	float w = 0;
-	float dw = width / (static_cast<float>(horizontal_slice_edge_count) - 1);
 	float h = 0;
-	float dh = height / (static_cast<float>(vertical_slice_edge_count) - 1);
+	float step_h = static_cast<float>(height) / vertical_split_count;
+	float w = 0;
+	float step_w = static_cast<float>(width) / horizontal_split_count;
 
 	// Generate vertices iteratively:
-	size_t index = 0u;
-	for (unsigned int i = 0u; i < horizontal_slice_vertices_count; i++){
+	int index = 0;
+	for (int i = 0; i < vertical_split_count; i++){
+		h = 0;
+		for (int j = 0; j < horizontal_split_count; j++){
+			normals[index] = glm::vec3(0, 0, 1);
+			tangents[index] = glm::vec3(1, 0, 0);
+			binormals[index] = glm::vec3(0, 1, 0);
+			vertices[index] = glm::vec3(step_w * j, 0, step_h * i);
+			texcoords[index] = glm::vec3(static_cast<float>(j)/(static_cast<float>(horizontal_split_count) - 1.0f), static_cast<float>(i)/(static_cast<float>(vertical_split_count) - 1.0f), 0.0);
 
-		h = 0; // Reset height to 0 when evaluated for a specific width
-
-		for (unsigned int j = 0u; j < vertical_slice_vertices_count; j++){
-			
-			// Vertices:
-			vertices[index] = glm::vec3(w, 0, h);
-
-			// Texture coordinates:
-			texcoords[index] = glm::vec3(static_cast<float>(i) / (static_cast<float>(horizontal_slice_vertices_count)),
-										 static_cast<float>(j) / (static_cast<float>(vertical_slice_vertices_count)),
-										 0.0f);
-
-			// Tangent:
-			auto t = glm::vec3(1.0f, 0.0f, 0.0f);
-			tangents[index] = t;
-
-			// Binormal:
-			auto b = glm::vec3(0, 0, 1);
-			binormals[index] = b;
-
-			// Normal:
-			auto n = glm::cross(t, b);
-			normals[index] = n;
-
-			h += dh;
-			++index;	
-		
+			h += step_h;
+			index++;
 		}
-
-		w += dw;
+		
+		w += step_w;
 	}
 
-	// Create indices array:
-	auto index_sets = std::vector<glm::uvec3>(2u * ((static_cast<float>(horizontal_slice_edge_count))) * ((static_cast<float>(vertical_slice_edge_count))));
-
 	// Generate indices iteratively:
-	index = 0u;
-	for (unsigned int i = 0u; i < (static_cast<float>(vertical_slice_edge_count)); i++) {
-		for (unsigned int j = 0u; j < (static_cast<float>(horizontal_slice_edge_count)); j++) {
-			index_sets[index] = glm::uvec3(i + (j *horizontal_slice_vertices_count),
-										i + (j * horizontal_slice_vertices_count) + 1u,
-										i + (j * horizontal_slice_vertices_count) + horizontal_slice_vertices_count + 1u);
-			++index;
+	auto index_sets = std::vector<glm::uvec3>(2 * (vertical_split_count - 1) * (horizontal_split_count - 1));
 
-			index_sets[index] = glm::uvec3(i + (j *horizontal_slice_vertices_count),
-										i + (j * horizontal_slice_vertices_count) + horizontal_slice_vertices_count + 1u,
-										i + (j * horizontal_slice_vertices_count) + horizontal_slice_vertices_count);
-			++index;
+	index = 0;
+	for (int i = 0; i < vertical_split_count - 1; i++) {
+		for (int j = 0; j < horizontal_split_count - 1; j++) {
+			index_sets[index] = glm::uvec3(i * horizontal_split_count + j, i * horizontal_split_count + horizontal_split_count + j, i * horizontal_split_count + j + 1);
+			index++;
+			index_sets[index] = glm::uvec3(i * horizontal_split_count + horizontal_split_count + j + 1, i * horizontal_split_count + j + 1,  i * horizontal_split_count + horizontal_split_count + j);
+			index++;
 		}
 	}
 
@@ -236,7 +200,6 @@ parametric_shapes::createTessQuad(float const width, float const height,
 		+ tangents_size
 		+ binormals_size
 		);
-
 	glGenBuffers(1, &data.bo);
 	assert(data.bo != 0u);
 	glBindBuffer(GL_ARRAY_BUFFER, data.bo);
@@ -272,6 +235,7 @@ parametric_shapes::createTessQuad(float const width, float const height,
 
 	glBindVertexArray(0u);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0u);
+
 
 	return data;
 }
