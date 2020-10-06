@@ -115,7 +115,7 @@ edaf80::Assignment4::run() {
 	glUniform3fv(glGetUniformLocation(program, "light_position"), 1, glm::value_ptr(light_position));
 	};
 
-	auto my_cube_map_id= bonobo::loadTextureCubeMap(config::resources_path("cubemaps/Teide/posx.jpg"),
+	auto skybox_id= bonobo::loadTextureCubeMap(config::resources_path("cubemaps/Teide/posx.jpg"),
 													config::resources_path("cubemaps/Teide/negx.jpg"),
 													config::resources_path("cubemaps/Teide/posy.jpg"),
 													config::resources_path("cubemaps/Teide/negy.jpg"),
@@ -127,12 +127,13 @@ edaf80::Assignment4::run() {
 	Node water;
 	water.set_geometry(water_shape);
 	water.set_program(&water_shader, water_set_uniforms);
+	water.add_texture("skybox", skybox_id, GL_TEXTURE_CUBE_MAP);
 	water.get_transform().SetTranslate(glm::vec3(-5.0f, -2.0f, -5.0f));
 
 	Node skybox;
 	skybox.set_geometry(skybox_shape);
 	skybox.set_program(&skybox_shader, set_uniforms);
-	skybox.add_texture("my_cube_map", my_cube_map_id, GL_TEXTURE_CUBE_MAP);
+	skybox.add_texture("skybox", skybox_id, GL_TEXTURE_CUBE_MAP);
 
 	glClearDepthf(1.0f);
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
