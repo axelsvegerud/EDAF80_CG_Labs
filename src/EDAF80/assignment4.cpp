@@ -30,8 +30,16 @@ edaf80::Assignment4::Assignment4(WindowManager& windowManager) :
 }
 
 void
-edaf80::Assignment4::run()
-{
+edaf80::Assignment4::run() {
+
+	/*
+	float amplitude[2] = { 1.0, 0.5 };
+	float frequency[2] = { 0.2, 0.4 };
+	float phase[2] = { 0.5, 1.3 };
+	float sharpness[2] = { 2.0, 2.0 };
+	glm::vec2  direction[2] = { glm::vec2(-1.0, 0.0), glm::vec2(-0.7, 0.7) };
+	*/
+
 	// Set up the camera
 	mCamera.mWorld.SetTranslate(glm::vec3(0.0f, 0.0f, 6.0f));
 	mCamera.mMouseSensitivity = 0.003f;
@@ -50,19 +58,36 @@ edaf80::Assignment4::run()
 		return;
 	}
 
+	GLuint water_shader = 0u;
+	program_manager.CreateAndRegisterProgram("Water",
+		{ { ShaderType::vertex, "EDAF80/water.vert" },
+		  { ShaderType::fragment, "EDAF80/water.frag" } },
+		water_shader);
+	if (water_shader == 0u) {
+		LogError("Failed to load water shader");
+		return;
+	}
+
 	//
 	// Todo: Insert the creation of other shader programs.
 	//       (Check how it was done in assignment 3.)
 	//
 
 	float ellapsed_time_s = 0.0f;
+	auto light_position = glm::vec3(-16.0f, 4.0f, 16.0f);
+
+	auto const water_set_uniforms = [&ellapsed_time_s, &camera_position, &light_position](GLuint program) {
+		glUniform1f(glGetUniformLocation(program, "ellapsed_time"), ellapsed_time_s);
+		glUniform3fv(glGetUniformLocation(program, "camera_position"), 1, glm::value_ptr(camera_position));
+		glUniform3fv(glGetUniformLocation(program, "light_position"), 1, glm::value_ptr(light_position));
+	};
 
 	//
 	// Todo: Load your geometry
 	//
 
 	// Load the quad:
-	auto water_shape = parametric_shapes::createTessQuad(100, 100, 50, 50);
+	auto water_shape = parametric_shapes::createTessQuad(10, 10, 10, 10);
 	if (water_shape.vao == 0u) {
 		LogError("Failed to retrieve the mesh for the skybox");
 		return;
@@ -70,7 +95,7 @@ edaf80::Assignment4::run()
 
 	auto water = Node();
 	water.set_geometry(water_shape);
-	water.set_program(&fallback_shader);
+	water.set_program(&water_shader, water_set_uniforms);
 
 	glClearDepthf(1.0f);
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
