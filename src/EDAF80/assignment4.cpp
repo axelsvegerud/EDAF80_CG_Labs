@@ -58,6 +58,7 @@ edaf80::Assignment4::run() {
 		return;
 	}
 
+	// My water_shader
 	GLuint water_shader = 0u;
 	program_manager.CreateAndRegisterProgram("Water",
 		{ { ShaderType::vertex, "EDAF80/water.vert" },
@@ -68,13 +69,41 @@ edaf80::Assignment4::run() {
 		return;
 	}
 
+	// My skybox shader:
+	GLuint skybox_shader = 0u;
+	program_manager.CreateAndRegisterProgram("Skybox",
+											 { { ShaderType::vertex, "EDAF80/skybox.vert" },
+											 { ShaderType::fragment, "EDAF80/skybox.frag" } },
+											 skybox_shader);
+	if (skybox_shader == 0u)
+		LogError("Failed to load skybox shader");
+
 	//
 	// Todo: Insert the creation of other shader programs.
 	//       (Check how it was done in assignment 3.)
 	//
 
+
+	//
+	// Todo: Load your geometry
+	//
+
 	float ellapsed_time_s = 0.0f;
 	auto light_position = glm::vec3(-16.0f, 4.0f, 16.0f);
+
+	// Load the quad:
+	auto water_shape = parametric_shapes::createTessQuad(10.0f, 10.0f, 100u, 100u);
+	if (water_shape.vao == 0u) {
+		LogError("Failed to retrieve the mesh for the skybox");
+		return;
+	}
+
+	auto skybox_shape = parametric_shapes::createSphere(20.0f, 100u, 100u);
+	if (skybox_shape.vao == 0u) {
+		LogError("Failed to retrieve the mesh for the skybox");
+		return;
+	}
+
 
 	auto const water_set_uniforms = [&ellapsed_time_s, &camera_position, &light_position](GLuint program) {
 		glUniform1f(glGetUniformLocation(program, "ellapsed_time"), ellapsed_time_s);
@@ -82,20 +111,28 @@ edaf80::Assignment4::run() {
 		glUniform3fv(glGetUniformLocation(program, "light_position"), 1, glm::value_ptr(light_position));
 	};
 
-	//
-	// Todo: Load your geometry
-	//
+	auto const set_uniforms = [&light_position](GLuint program){
+	glUniform3fv(glGetUniformLocation(program, "light_position"), 1, glm::value_ptr(light_position));
+	};
 
-	// Load the quad:
-	auto water_shape = parametric_shapes::createTessQuad(10, 10, 10, 10);
-	if (water_shape.vao == 0u) {
-		LogError("Failed to retrieve the mesh for the skybox");
-		return;
-	}
+	auto my_cube_map_id= bonobo::loadTextureCubeMap(config::resources_path("cubemaps/Teide/posx.jpg"),
+													config::resources_path("cubemaps/Teide/negx.jpg"),
+													config::resources_path("cubemaps/Teide/posy.jpg"),
+													config::resources_path("cubemaps/Teide/negy.jpg"),
+													config::resources_path("cubemaps/Teide/posz.jpg"),
+													config::resources_path("cubemaps/Teide/negz.jpg"),
+													true);
 
-	auto water = Node();
+
+	Node water;
 	water.set_geometry(water_shape);
 	water.set_program(&water_shader, water_set_uniforms);
+	water.get_transform().SetTranslate(glm::vec3(-5.0f, -2.0f, -5.0f));
+
+	Node skybox;
+	skybox.set_geometry(skybox_shape);
+	skybox.set_program(&skybox_shader, set_uniforms);
+	skybox.add_texture("my_cube_map", my_cube_map_id, GL_TEXTURE_CUBE_MAP);
 
 	glClearDepthf(1.0f);
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -171,6 +208,7 @@ edaf80::Assignment4::run() {
 			// Todo: Render all your geometry here.
 			//
 			water.render(mCamera.GetWorldToClipMatrix());
+			skybox.render(mCamera.GetWorldToClipMatrix());
 		}
 
 
