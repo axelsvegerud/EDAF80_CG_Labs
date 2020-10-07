@@ -19,11 +19,11 @@ out VS_OUT {
 	vec2 normalCoord2;
 } vs_out;
 
-uniform	float amplitude[2] = { 1.0, 0.5 };
-uniform	float frequency[2] = { 0.2, 0.4 };
-uniform	float phase[2] = { 0.5, 1.3 };
-uniform	float sharpness[2] = { 2.0, 2.0 };
-uniform	vec2 direction[2] = { vec2(-1.0, 0.0), vec2(-0.7, 0.7) };
+uniform	float amplitude[2];
+uniform	float frequency[2];
+uniform	float phase[2];
+uniform	float sharpness[2];
+uniform	vec2 direction[2];
 uniform float ellapsed_time;
 
 float wave(vec2 position, vec2 direction, float amplitude, float frequency, float phase, float sharpness, float time){
