@@ -32,14 +32,6 @@ edaf80::Assignment4::Assignment4(WindowManager& windowManager) :
 void
 edaf80::Assignment4::run() {
 
-	/*
-	float amplitude[2] = { 1.0, 0.5 };
-	float frequency[2] = { 0.2, 0.4 };
-	float phase[2] = { 0.5, 1.3 };
-	float sharpness[2] = { 2.0, 2.0 };
-	glm::vec2  direction[2] = { glm::vec2(-1.0, 0.0), glm::vec2(-0.7, 0.7) };
-	*/
-
 	// Set up the camera
 	mCamera.mWorld.SetTranslate(glm::vec3(0.0f, 0.0f, 6.0f));
 	mCamera.mMouseSensitivity = 0.003f;
