@@ -123,11 +123,13 @@ edaf80::Assignment4::run() {
 													config::resources_path("cubemaps/Teide/negz.jpg"),
 													true);
 
+	auto water_normal_id = bonobo::loadTexture2D(config::resources_path("textures/waves.png"));
 
 	Node water;
 	water.set_geometry(water_shape);
 	water.set_program(&water_shader, water_set_uniforms);
 	water.add_texture("skybox", skybox_id, GL_TEXTURE_CUBE_MAP);
+	water.add_texture("normal_map", water_normal_id, GL_TEXTURE_2D);
 	water.get_transform().SetTranslate(glm::vec3(-5.0f, -2.0f, -5.0f));
 
 	Node skybox;
