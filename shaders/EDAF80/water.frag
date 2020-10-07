@@ -50,6 +50,10 @@ void main()
 
 	// Refraction:
 
+	float rn1 = 1.33;
+	float rn2 = 1.0 / 1.33;
+	vec4 refraction = texture(skybox, refract(-V, n, rn2));
+
 	// Color:
 	vec4 color_deep = vec4(0.0, 0.0, 0.1, 1.0);
 	vec4 color_shallow = vec4(0.0, 0.5, 0.5, 1.0);
@@ -57,5 +61,5 @@ void main()
 	float facing = 1 - max(dot(V, n), 0.0);
 	vec4 water_color = mix(color_deep, color_shallow, facing);
 
-	frag_color = water_color + reflection_color * fastFresnel;
+	frag_color = water_color + reflection_color * fastFresnel + refraction * (1 - fastFresnel);
 }
