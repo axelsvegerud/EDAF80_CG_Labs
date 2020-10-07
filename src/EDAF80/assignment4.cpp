@@ -92,7 +92,7 @@ edaf80::Assignment4::run() {
 	auto light_position = glm::vec3(-16.0f, 4.0f, 16.0f);
 
 	// Load the quad:
-	auto water_shape = parametric_shapes::createTessQuad(10.0f, 10.0f, 100u, 100u);
+	auto water_shape = parametric_shapes::createTessQuad(10.0f, 10.0f, 50u, 50u);
 	if (water_shape.vao == 0u) {
 		LogError("Failed to retrieve the mesh for the skybox");
 		return;
@@ -115,12 +115,12 @@ edaf80::Assignment4::run() {
 	glUniform3fv(glGetUniformLocation(program, "light_position"), 1, glm::value_ptr(light_position));
 	};
 
-	auto skybox_id= bonobo::loadTextureCubeMap(config::resources_path("cubemaps/Teide/posx.jpg"),
-													config::resources_path("cubemaps/Teide/negx.jpg"),
-													config::resources_path("cubemaps/Teide/posy.jpg"),
-													config::resources_path("cubemaps/Teide/negy.jpg"),
-													config::resources_path("cubemaps/Teide/posz.jpg"),
-													config::resources_path("cubemaps/Teide/negz.jpg"),
+	auto skybox_id= bonobo::loadTextureCubeMap(config::resources_path("cubemaps/NissiBeach2/posx.jpg"),
+													config::resources_path("cubemaps/NissiBeach2/negx.jpg"),
+													config::resources_path("cubemaps/NissiBeach2/posy.jpg"),
+													config::resources_path("cubemaps/NissiBeach2/negy.jpg"),
+													config::resources_path("cubemaps/NissiBeach2/posz.jpg"),
+													config::resources_path("cubemaps/NissiBeach2/negz.jpg"),
 													true);
 
 	auto water_normal_id = bonobo::loadTexture2D(config::resources_path("textures/waves.png"));
