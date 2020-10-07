@@ -92,20 +92,30 @@ edaf80::Assignment4::run() {
 	auto light_position = glm::vec3(-16.0f, 4.0f, 16.0f);
 
 	// Load the quad:
-	auto water_shape = parametric_shapes::createTessQuad(10.0f, 10.0f, 50u, 50u);
+	auto water_shape = parametric_shapes::createTessQuad(50.0f, 50.0f, 50u, 50u);
 	if (water_shape.vao == 0u) {
 		LogError("Failed to retrieve the mesh for the skybox");
 		return;
 	}
 
-	auto skybox_shape = parametric_shapes::createSphere(20.0f, 100u, 100u);
+	auto skybox_shape = parametric_shapes::createSphere(40.0f, 100u, 100u);
 	if (skybox_shape.vao == 0u) {
 		LogError("Failed to retrieve the mesh for the skybox");
 		return;
 	}
 
+	float amplitude[2] = { 1.0, 0.5 };
+	float frequency[2] = { 0.2, 0.4 };
+	float phase[2] = { 0.5, 1.3 };
+	float sharpness[2] = { 2.0, 2.0 };
+	glm::vec2 direction[2] = { glm::vec2(-1.0, 0.0), glm::vec2(-0.7, 0.7) };
 
-	auto const water_set_uniforms = [&ellapsed_time_s, &camera_position, &light_position](GLuint program) {
+	auto const water_set_uniforms = [&amplitude, &frequency, &sharpness, &phase, &direction, &ellapsed_time_s, &camera_position, &light_position](GLuint program) {
+		glUniform1fv(glGetUniformLocation(program, "amplitude"), 2, amplitude);
+		glUniform1fv(glGetUniformLocation(program, "frequency"), 2, frequency);
+		glUniform1fv(glGetUniformLocation(program, "sharpness"), 2, sharpness);
+		glUniform1fv(glGetUniformLocation(program, "phase"), 2, phase);
+		glUniform2fv(glGetUniformLocation(program, "direction"), 2, glm::value_ptr(direction[0]));
 		glUniform1f(glGetUniformLocation(program, "ellapsed_time"), ellapsed_time_s);
 		glUniform3fv(glGetUniformLocation(program, "camera_position"), 1, glm::value_ptr(camera_position));
 		glUniform3fv(glGetUniformLocation(program, "light_position"), 1, glm::value_ptr(light_position));
@@ -130,7 +140,7 @@ edaf80::Assignment4::run() {
 	water.set_program(&water_shader, water_set_uniforms);
 	water.add_texture("skybox", skybox_id, GL_TEXTURE_CUBE_MAP);
 	water.add_texture("normal_map", water_normal_id, GL_TEXTURE_2D);
-	water.get_transform().SetTranslate(glm::vec3(-5.0f, -2.0f, -5.0f));
+	water.get_transform().SetTranslate(glm::vec3(-25.0f, -5.0f, -25.0f));
 
 	Node skybox;
 	skybox.set_geometry(skybox_shape);
