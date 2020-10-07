@@ -45,7 +45,8 @@ void main()
 	vec4 reflection_color = texture(skybox, R);
 
 	// Fresnel reflection: 
-
+	float r0 = 0.02037;
+	float fastFresnel = r0 + (1 - r0) * pow(1 - dot(V, n), 5);
 
 	// Refraction:
 
@@ -56,5 +57,5 @@ void main()
 	float facing = 1 - max(dot(V, n), 0.0);
 	vec4 water_color = mix(color_deep, color_shallow, facing);
 
-	frag_color = water_color + reflection_color;
+	frag_color = water_color + reflection_color * fastFresnel;
 }
