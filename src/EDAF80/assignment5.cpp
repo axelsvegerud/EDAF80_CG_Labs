@@ -11,6 +11,9 @@
 
 #include <clocale>
 #include <stdexcept>
+#include <glm\gtc\type_ptr.hpp>
+#include <core\node.hpp>
+#include <EDAF80\parametric_shapes.hpp>
 
 edaf80::Assignment5::Assignment5(WindowManager& windowManager) :
 	mCamera(0.5f * glm::half_pi<float>(),
@@ -30,7 +33,7 @@ void
 edaf80::Assignment5::run()
 {
 	// Set up the camera
-	mCamera.mWorld.SetTranslate(glm::vec3(0.0f, 0.0f, 6.0f));
+	mCamera.mWorld.SetTranslate(glm::vec3(0.0f, 0.0f, 10.0f));
 	mCamera.mMouseSensitivity = 0.003f;
 	mCamera.mMovementSpeed = 3.0f; // 3 m/s => 10.8 km/h
 
@@ -51,9 +54,49 @@ edaf80::Assignment5::run()
 	//       (Check how it was done in assignment 3.)
 	//
 
+	GLuint phong_shader = 0u;
+	program_manager.CreateAndRegisterProgram("Phong",
+		{ { ShaderType::vertex, "EDAF80/phong.vert" },
+		{ ShaderType::fragment, "EDAF80/phong.frag" } },
+		phong_shader);
+	if (phong_shader == 0u) {
+		LogError("Failed to load phong shader");
+		return;
+	}
 	//
 	// Todo: Load your geometry
 	//
+
+	auto light_position = glm::vec3(-2.0f, 4.0f, 2.0f);
+	bool use_normal_mapping = false;
+	auto camera_position = mCamera.mWorld.GetTranslation();
+	auto ambient = glm::vec3(0.1f, 0.45f, 0.345f);
+	auto diffuse = glm::vec3(1.0f, 1.0f, 1.0f);
+	auto specular = glm::vec3(0.4f, 0.4f, 0.4f);
+	auto shininess = 200.0f;
+	auto const phong_set_uniforms = [&use_normal_mapping, &light_position, &camera_position, &ambient, &diffuse, &specular, &shininess](GLuint program) {
+		glUniform1i(glGetUniformLocation(program, "use_normal_mapping"), use_normal_mapping ? 1 : 0);
+		glUniform3fv(glGetUniformLocation(program, "light_position"), 1, glm::value_ptr(light_position));
+		glUniform3fv(glGetUniformLocation(program, "camera_position"), 1, glm::value_ptr(camera_position));
+		glUniform3fv(glGetUniformLocation(program, "ambient"), 1, glm::value_ptr(ambient));
+		glUniform3fv(glGetUniformLocation(program, "diffuse"), 1, glm::value_ptr(diffuse));
+		glUniform3fv(glGetUniformLocation(program, "specular"), 1, glm::value_ptr(specular));
+		glUniform1f(glGetUniformLocation(program, "shininess"), shininess);
+	};
+
+	auto my_normal_map_id = bonobo::loadTexture2D(config::resources_path("textures/cobblestone_floor_08_nor_2k.jpg"), true);
+
+	auto my_diffuse_map_id = bonobo::loadTexture2D(config::resources_path("textures/cobblestone_floor_08_diff_2k.jpg"), true);
+
+	auto torus_shape = parametric_shapes::createTorus(2.0f, 0.5f, 50u, 50u);
+
+	Node torus;
+	torus.set_geometry(torus_shape);
+	torus.set_program(&phong_shader, phong_set_uniforms);
+
+	// Set the diffuse and normal textures
+	torus.add_texture("diffuse_map", my_diffuse_map_id, GL_TEXTURE_2D);
+	torus.add_texture("normal_map", my_normal_map_id, GL_TEXTURE_2D);
 
 	glClearDepthf(1.0f);
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -70,6 +113,10 @@ edaf80::Assignment5::run()
 	bool show_logs = true;
 	bool show_gui = true;
 	bool shader_reload_failed = false;
+
+	std::int32_t torus_program_index = 0;
+	auto polygon_mode = bonobo::polygon_mode_t::fill;
+
 
 	while (!glfwWindowShouldClose(window)) {
 		auto const nowTime = std::chrono::high_resolution_clock::now();
@@ -119,12 +166,14 @@ edaf80::Assignment5::run()
 		mWindowManager.NewImGuiFrame();
 
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+		bonobo::changePolygonMode(polygon_mode);
 
 
 		if (!shader_reload_failed) {
 			//
 			// Todo: Render all your geometry here.
 			//
+			torus.render(mCamera.GetWorldToClipMatrix());
 		}
 
 
@@ -134,6 +183,23 @@ edaf80::Assignment5::run()
 		// Todo: If you want a custom ImGUI window, you can set it up
 		//       here
 		//
+
+		bool opened = ImGui::Begin("Scene Control", nullptr, ImGuiWindowFlags_None);
+		if (opened) {
+			bonobo::uiSelectPolygonMode("Polygon mode", polygon_mode);
+			auto torus_selection_result = program_manager.SelectProgram("Torus", torus_program_index);
+			if (torus_selection_result.was_selection_changed) {
+				torus.set_program(torus_selection_result.program, phong_set_uniforms);
+			}
+			ImGui::Separator();
+			ImGui::Checkbox("Use normal mapping", &use_normal_mapping);
+			ImGui::ColorEdit3("Ambient", glm::value_ptr(ambient));
+			ImGui::ColorEdit3("Diffuse", glm::value_ptr(diffuse));
+			ImGui::ColorEdit3("Specular", glm::value_ptr(specular));
+			ImGui::SliderFloat("Shininess", &shininess, 1.0f, 1000.0f);
+			ImGui::SliderFloat3("Light Position", glm::value_ptr(light_position), -20.0f, 20.0f);
+		}
+		ImGui::End();
 
 		if (show_logs)
 			Log::View::Render();
