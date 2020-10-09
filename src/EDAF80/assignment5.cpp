@@ -9,11 +9,13 @@
 #include <imgui.h>
 #include <tinyfiledialogs.h>
 
+#include <array>
 #include <clocale>
 #include <stdexcept>
 #include <glm\gtc\type_ptr.hpp>
 #include <core\node.hpp>
 #include <EDAF80\parametric_shapes.hpp>
+#include <EDAF80\player.hpp>
 
 edaf80::Assignment5::Assignment5(WindowManager& windowManager) :
 	mCamera(0.5f * glm::half_pi<float>(),
@@ -56,26 +58,58 @@ edaf80::Assignment5::run()
 
 	GLuint phong_shader = 0u;
 	program_manager.CreateAndRegisterProgram("Phong",
-		{ { ShaderType::vertex, "EDAF80/phong.vert" },
-		{ ShaderType::fragment, "EDAF80/phong.frag" } },
+		{ { ShaderType::vertex, "EDAF80/phong_game.vert" },
+		{ ShaderType::fragment, "EDAF80/phong_game.frag" } },
 		phong_shader);
 	if (phong_shader == 0u) {
 		LogError("Failed to load phong shader");
+		return;
+	}
+
+	GLuint skybox_shader = 0u;
+	program_manager.CreateAndRegisterProgram("Skybox",
+		{ { ShaderType::vertex, "EDAF80/skybox.vert" },
+		{ ShaderType::fragment, "EDAF80/skybox.frag" } },
+		skybox_shader);
+	if (skybox_shader == 0u) {
+		LogError("Failed to load skybox shader");
 		return;
 	}
 	//
 	// Todo: Load your geometry
 	//
 
+	// Shapes:
+	auto torus_shape = parametric_shapes::createTorus(10.0f, 2.5f, 50u, 50u);
+	auto skybox_shape = parametric_shapes::createSphere(100.0f, 100u, 100u);
+	auto player_shape = parametric_shapes::createSphere(0.5f, 50u, 50u);
+
+	// Map ID:
+	auto my_normal_map_id = bonobo::loadTexture2D(config::resources_path("textures/cobblestone_floor_08_nor_2k.jpg"), true);
+	auto my_diffuse_map_id = bonobo::loadTexture2D(config::resources_path("textures/cobblestone_floor_08_diff_2k.jpg"), true);
+	auto skybox_id = bonobo::loadTextureCubeMap(config::resources_path("cubemaps/NissiBeach2/posx.jpg"),
+		config::resources_path("cubemaps/NissiBeach2/negx.jpg"),
+		config::resources_path("cubemaps/NissiBeach2/posy.jpg"),
+		config::resources_path("cubemaps/NissiBeach2/negy.jpg"),
+		config::resources_path("cubemaps/NissiBeach2/posz.jpg"),
+		config::resources_path("cubemaps/NissiBeach2/negz.jpg"),
+		true);
+
+	// Uniforms:
+	float ellapsed_time_s = 0.0f;
 	auto light_position = glm::vec3(-2.0f, 4.0f, 2.0f);
 	bool use_normal_mapping = false;
 	auto camera_position = mCamera.mWorld.GetTranslation();
-	auto ambient = glm::vec3(0.1f, 0.45f, 0.345f);
-	auto diffuse = glm::vec3(1.0f, 1.0f, 1.0f);
+	auto ambient = glm::vec3(0.45f, 0.1f, 0.1f);
+	auto diffuse = glm::vec3(1.0f, 0.2f, 0.2f);
 	auto specular = glm::vec3(0.4f, 0.4f, 0.4f);
 	auto shininess = 200.0f;
-	auto const phong_set_uniforms = [&use_normal_mapping, &light_position, &camera_position, &ambient, &diffuse, &specular, &shininess](GLuint program) {
-		glUniform1i(glGetUniformLocation(program, "use_normal_mapping"), use_normal_mapping ? 1 : 0);
+
+	auto const set_uniforms = [&light_position](GLuint program) {
+		glUniform3fv(glGetUniformLocation(program, "light_position"), 1, glm::value_ptr(light_position));
+	};
+
+	auto const phong_set_uniforms = [&light_position, &camera_position, &ambient, &diffuse, &specular, &shininess](GLuint program) {
 		glUniform3fv(glGetUniformLocation(program, "light_position"), 1, glm::value_ptr(light_position));
 		glUniform3fv(glGetUniformLocation(program, "camera_position"), 1, glm::value_ptr(camera_position));
 		glUniform3fv(glGetUniformLocation(program, "ambient"), 1, glm::value_ptr(ambient));
@@ -84,19 +118,23 @@ edaf80::Assignment5::run()
 		glUniform1f(glGetUniformLocation(program, "shininess"), shininess);
 	};
 
-	auto my_normal_map_id = bonobo::loadTexture2D(config::resources_path("textures/cobblestone_floor_08_nor_2k.jpg"), true);
+	// Sky:
+	Node skybox;
+	skybox.set_geometry(skybox_shape);
+	skybox.set_program(&skybox_shader, set_uniforms);
+	skybox.add_texture("skybox", skybox_id, GL_TEXTURE_CUBE_MAP);
 
-	auto my_diffuse_map_id = bonobo::loadTexture2D(config::resources_path("textures/cobblestone_floor_08_diff_2k.jpg"), true);
+	// Path:
 
-	auto torus_shape = parametric_shapes::createTorus(2.0f, 0.5f, 50u, 50u);
-
+	// Torus:
 	Node torus;
 	torus.set_geometry(torus_shape);
 	torus.set_program(&phong_shader, phong_set_uniforms);
 
-	// Set the diffuse and normal textures
-	torus.add_texture("diffuse_map", my_diffuse_map_id, GL_TEXTURE_2D);
-	torus.add_texture("normal_map", my_normal_map_id, GL_TEXTURE_2D);
+	// Player:
+	Player player = Player(player_shape, &phong_shader, phong_set_uniforms);
+
+
 
 	glClearDepthf(1.0f);
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -122,13 +160,18 @@ edaf80::Assignment5::run()
 		auto const nowTime = std::chrono::high_resolution_clock::now();
 		auto const deltaTimeUs = std::chrono::duration_cast<std::chrono::microseconds>(nowTime - lastTime);
 		lastTime = nowTime;
+		ellapsed_time_s += std::chrono::duration<float>(deltaTimeUs).count();
 
 		auto& io = ImGui::GetIO();
 		inputHandler.SetUICapture(io.WantCaptureMouse, io.WantCaptureKeyboard);
 
 		glfwPollEvents();
 		inputHandler.Advance();
-		mCamera.Update(deltaTimeUs, inputHandler);
+		//mCamera.Update(deltaTimeUs, inputHandler);
+		player.update(inputHandler, ellapsed_time_s / 1000.0f);
+		glm::vec3 direction = player.get_direction();
+		mCamera.mWorld.SetTranslate(player.get_position() - 6.0f * player.get_direction());
+		mCamera.mWorld.LookAt(player.get_position(), glm::vec3(0.0, 1.0, 0.0));
 
 		if (inputHandler.GetKeycodeState(GLFW_KEY_R) & JUST_PRESSED) {
 			shader_reload_failed = !program_manager.ReloadAllPrograms();
@@ -174,6 +217,8 @@ edaf80::Assignment5::run()
 			// Todo: Render all your geometry here.
 			//
 			torus.render(mCamera.GetWorldToClipMatrix());
+			player.render(mCamera.GetWorldToClipMatrix());
+			skybox.render(mCamera.GetWorldToClipMatrix());
 		}
 
 
