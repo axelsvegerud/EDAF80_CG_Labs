@@ -85,6 +85,8 @@ target_sources (
 	PRIVATE
 		[[assignment5.hpp]]
 		[[assignment5.cpp]]
+		[[player.cpp]]
+		[[player.hpp]]
 )
 target_link_libraries (
 	EDAF80_Assignment5
