@@ -8,7 +8,7 @@ class Player {
 public:
 	Player(GLuint* shader, glm::vec3&, glm::vec3&);
 	~Player() = default;
-	Player(bonobo::mesh_data, const GLuint* program, const std::function<void(GLuint)>& set_uniforms = [](GLuint) {});
+	Player(const GLuint* program, const std::function<void(GLuint)>& set_uniforms = [](GLuint) {});
 	void render(glm::mat4);
 	glm::vec3 get_position();
 	glm::vec3 get_direction();
