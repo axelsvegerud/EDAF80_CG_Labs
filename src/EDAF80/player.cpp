@@ -5,19 +5,28 @@
 #include <math.h>
 #include <iostream>
 #include <glm/gtc/type_ptr.hpp>
+#include <config.hpp>
 
-/*
-Player::Player( GLuint* shader, glm::vec3& light_position, glm::vec3& camera_position) {
 
-}
-*/
+Player::Player(const GLuint* program, const std::function<void(GLuint)>& set_uniforms) {
 
-Player::Player(bonobo::mesh_data shape, const GLuint* program, const std::function<void(GLuint)>& set_uniforms) {
-	baseNode.set_geometry(shape);
+	std::vector<bonobo::mesh_data> const objects = bonobo::loadObjects(config::resources_path("plane/11665_Airplane_v1_l3.obj"));
+	if (objects.empty()) {
+		printf("Failed to load the sphere geometry: exiting.\n");
+	}
+	auto airplane_texture = bonobo::loadTexture2D(config::resources_path("plane/11665_Airplane_diff.jpg"));
+
+	bonobo::mesh_data const& plane = objects.front();
+
+	baseNode.set_geometry(plane);
 	baseNode.set_program(program, set_uniforms);
+	baseNode.add_texture("diffuse_texture", airplane_texture, GL_TEXTURE_2D);
 }
 
 void Player::render(glm::mat4 worldToClipMatrix) {
+	baseNode.get_transform().SetScale(0.07);
+	baseNode.get_transform().Rotate(glm::pi<double>() * -0.5, glm::vec3(0.0, 0.0, 1.0));
+	baseNode.get_transform().Rotate(glm::pi<double>() * -0.55, glm::vec3(0.0, 1.0, 0.0));
 	baseNode.render(worldToClipMatrix);
 }
 
@@ -103,7 +112,6 @@ void Player::update(InputHandler inputHandler, float delta) {
 	force_thrust.y = glm::sin(glm::pi<double>() * angleX);
 	force_lift.x = -glm::sin(glm::pi<double>() * (angleZ / 75.0f));
 
-	//force_thrust = baseNode.get_transform().GetRotation() * force_thrust;
 	force_lift = baseNode.get_transform().GetRotation() * force_lift;
 	direction = force_thrust + force_lift;
 	direction = normalize(direction);
