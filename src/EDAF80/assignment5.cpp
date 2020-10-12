@@ -88,6 +88,16 @@ edaf80::Assignment5::run()
 		return;
 	}
 
+	GLuint default_shader = 0u;
+	program_manager.CreateAndRegisterProgram("default",
+		{ { ShaderType::vertex, "EDAF80/default.vert" },
+		  { ShaderType::fragment, "EDAF80/default.frag" } },
+		default_shader);
+	if (default_shader == 0u) {
+		LogError("Failed to load default shader");
+		return;
+	}
+
 	//
 	// Todo: Load your geometry
 	//
@@ -107,12 +117,12 @@ edaf80::Assignment5::run()
 		config::resources_path("cubemaps/NissiBeach2/posz.jpg"),
 		config::resources_path("cubemaps/NissiBeach2/negz.jpg"));
 
-
 	// Uniforms:
 	float ellapsed_time_s = 0.0f;
 	auto light_position = glm::vec3(-2.0f, 4.0f, 2.0f);
 	bool use_normal_mapping = true;
 	auto camera_position = mCamera.mWorld.GetTranslation();
+	auto ambient = glm::vec3(0.45f, 0.1f, 0.1f);
 	auto specular = glm::vec3(0.4f, 0.4f, 0.4f);
 	auto shininess = 200.0f;
 
@@ -161,6 +171,14 @@ edaf80::Assignment5::run()
 		glUniform3fv(glGetUniformLocation(program, "light_position"), 1, glm::value_ptr(light_position));
 	};
 
+	auto const plane_set_uniforms = [&light_position, &camera_position, &ambient, &specular, &shininess](GLuint program) {
+		glUniform3fv(glGetUniformLocation(program, "light_position"), 1, glm::value_ptr(light_position));
+		glUniform3fv(glGetUniformLocation(program, "camera_position"), 1, glm::value_ptr(camera_position));
+		glUniform3fv(glGetUniformLocation(program, "ambient"), 1, glm::value_ptr(ambient));
+		glUniform3fv(glGetUniformLocation(program, "specular"), 1, glm::value_ptr(specular));
+		glUniform1f(glGetUniformLocation(program, "shininess"), shininess);
+	};
+
 	// Sky:
 	Node skybox;
 	skybox.set_geometry(skybox_shape);
@@ -206,7 +224,8 @@ edaf80::Assignment5::run()
 	torus_points[0].set_program(&phong_shader, phong_set_uniforms_green);
 
 	// Player:
-	Player player = Player(player_shape, &phong_shader, phong_set_uniforms_red);
+	Player player = Player(&default_shader, plane_set_uniforms);
+
 
 
 	glClearDepthf(1.0f);
@@ -241,6 +260,7 @@ edaf80::Assignment5::run()
 		glfwPollEvents();
 		inputHandler.Advance();
 		//mCamera.Update(deltaTimeUs, inputHandler);
+		//camera_position = mCamera.mWorld.GetTranslation();
 		player.update(inputHandler, ellapsed_time_s / 1000.0f);
 		glm::vec3 direction = player.get_direction();
 		mCamera.mWorld.SetTranslate(player.get_position() - 6.0f * player.get_direction());
@@ -312,7 +332,7 @@ edaf80::Assignment5::run()
 			//
 			player.render(mCamera.GetWorldToClipMatrix());
 			skybox.render(mCamera.GetWorldToClipMatrix());
-			water.render(mCamera.GetWorldToClipMatrix());
+			//water.render(mCamera.GetWorldToClipMatrix());
 			for (int i = 0; i < rend_size; i++) {
 				torus_points[i].render(mCamera.GetWorldToClipMatrix());
 			}
