@@ -9,6 +9,8 @@
 #include <imgui.h>
 #include <tinyfiledialogs.h>
 
+#include <stdlib.h>
+#include <ctime>
 #include <array>
 #include <clocale>
 #include <stdexcept>
@@ -75,47 +77,88 @@ edaf80::Assignment5::run()
 		LogError("Failed to load skybox shader");
 		return;
 	}
+
+	GLuint water_shader = 0u;
+	program_manager.CreateAndRegisterProgram("Water",
+		{ { ShaderType::vertex, "EDAF80/water.vert" },
+		  { ShaderType::fragment, "EDAF80/water.frag" } },
+		water_shader);
+	if (water_shader == 0u) {
+		LogError("Failed to load water shader");
+		return;
+	}
+
 	//
 	// Todo: Load your geometry
 	//
 
 	// Shapes:
 	auto torus_shape = parametric_shapes::createTorus(10.0f, 2.5f, 50u, 50u);
-	auto skybox_shape = parametric_shapes::createSphere(100.0f, 100u, 100u);
+	auto skybox_shape = parametric_shapes::createSphere(500.0f, 100u, 100u);
 	auto player_shape = parametric_shapes::createSphere(0.5f, 50u, 50u);
+	auto water_shape = parametric_shapes::createTessQuad(1000.0f, 1000.0f, 500u, 500u);
 
 	// Map ID:
-	auto my_normal_map_id = bonobo::loadTexture2D(config::resources_path("textures/cobblestone_floor_08_nor_2k.jpg"), true);
-	auto my_diffuse_map_id = bonobo::loadTexture2D(config::resources_path("textures/cobblestone_floor_08_diff_2k.jpg"), true);
+	auto water_normal_id = bonobo::loadTexture2D(config::resources_path("textures/waves.png"));
 	auto skybox_id = bonobo::loadTextureCubeMap(config::resources_path("cubemaps/NissiBeach2/posx.jpg"),
 		config::resources_path("cubemaps/NissiBeach2/negx.jpg"),
 		config::resources_path("cubemaps/NissiBeach2/posy.jpg"),
 		config::resources_path("cubemaps/NissiBeach2/negy.jpg"),
 		config::resources_path("cubemaps/NissiBeach2/posz.jpg"),
-		config::resources_path("cubemaps/NissiBeach2/negz.jpg"),
-		true);
+		config::resources_path("cubemaps/NissiBeach2/negz.jpg"));
+
 
 	// Uniforms:
 	float ellapsed_time_s = 0.0f;
 	auto light_position = glm::vec3(-2.0f, 4.0f, 2.0f);
-	bool use_normal_mapping = false;
+	bool use_normal_mapping = true;
 	auto camera_position = mCamera.mWorld.GetTranslation();
-	auto ambient = glm::vec3(0.45f, 0.1f, 0.1f);
-	auto diffuse = glm::vec3(1.0f, 0.2f, 0.2f);
 	auto specular = glm::vec3(0.4f, 0.4f, 0.4f);
 	auto shininess = 200.0f;
+
+	float amplitude[2] = { 1.0, 0.5 };
+	float frequency[2] = { 0.2, 0.4 };
+	float phase[2] = { 0.5, 1.3 };
+	float sharpness[2] = { 2.0, 2.0 };
+	glm::vec2 direction[2] = { glm::vec2(-1.0, 0.0), glm::vec2(-0.7, 0.7) };
+
+	auto ambient_red = glm::vec3(0.45f, 0.0f, 0.0f);
+	auto diffuse_red = glm::vec3(1.0f, 0.2f, 0.2f);
+
+	auto ambient_green = glm::vec3(0.0f, 0.45f, 0.0f);
+	auto diffuse_green = glm::vec3(0.2f, 1.0f, 0.2f);
 
 	auto const set_uniforms = [&light_position](GLuint program) {
 		glUniform3fv(glGetUniformLocation(program, "light_position"), 1, glm::value_ptr(light_position));
 	};
 
-	auto const phong_set_uniforms = [&light_position, &camera_position, &ambient, &diffuse, &specular, &shininess](GLuint program) {
+	auto const phong_set_uniforms_red = [&light_position, &camera_position, &ambient_red, &diffuse_red, &specular, &shininess](GLuint program) {
 		glUniform3fv(glGetUniformLocation(program, "light_position"), 1, glm::value_ptr(light_position));
 		glUniform3fv(glGetUniformLocation(program, "camera_position"), 1, glm::value_ptr(camera_position));
-		glUniform3fv(glGetUniformLocation(program, "ambient"), 1, glm::value_ptr(ambient));
-		glUniform3fv(glGetUniformLocation(program, "diffuse"), 1, glm::value_ptr(diffuse));
+		glUniform3fv(glGetUniformLocation(program, "ambient"), 1, glm::value_ptr(ambient_red));
+		glUniform3fv(glGetUniformLocation(program, "diffuse"), 1, glm::value_ptr(diffuse_red));
 		glUniform3fv(glGetUniformLocation(program, "specular"), 1, glm::value_ptr(specular));
 		glUniform1f(glGetUniformLocation(program, "shininess"), shininess);
+	};
+
+	auto const phong_set_uniforms_green = [&light_position, &camera_position, &ambient_green, &diffuse_green, &specular, &shininess](GLuint program) {
+		glUniform3fv(glGetUniformLocation(program, "light_position"), 1, glm::value_ptr(light_position));
+		glUniform3fv(glGetUniformLocation(program, "camera_position"), 1, glm::value_ptr(camera_position));
+		glUniform3fv(glGetUniformLocation(program, "ambient"), 1, glm::value_ptr(ambient_green));
+		glUniform3fv(glGetUniformLocation(program, "diffuse"), 1, glm::value_ptr(diffuse_green));
+		glUniform3fv(glGetUniformLocation(program, "specular"), 1, glm::value_ptr(specular));
+		glUniform1f(glGetUniformLocation(program, "shininess"), shininess);
+	};
+
+	auto const water_set_uniforms = [&amplitude, &frequency, &sharpness, &phase, &direction, &ellapsed_time_s, &camera_position, &light_position](GLuint program) {
+		glUniform1fv(glGetUniformLocation(program, "amplitude"), 2, amplitude);
+		glUniform1fv(glGetUniformLocation(program, "frequency"), 2, frequency);
+		glUniform1fv(glGetUniformLocation(program, "sharpness"), 2, sharpness);
+		glUniform1fv(glGetUniformLocation(program, "phase"), 2, phase);
+		glUniform2fv(glGetUniformLocation(program, "direction"), 2, glm::value_ptr(direction[0]));
+		glUniform1f(glGetUniformLocation(program, "ellapsed_time"), ellapsed_time_s);
+		glUniform3fv(glGetUniformLocation(program, "camera_position"), 1, glm::value_ptr(camera_position));
+		glUniform3fv(glGetUniformLocation(program, "light_position"), 1, glm::value_ptr(light_position));
 	};
 
 	// Sky:
@@ -123,17 +166,47 @@ edaf80::Assignment5::run()
 	skybox.set_geometry(skybox_shape);
 	skybox.set_program(&skybox_shader, set_uniforms);
 	skybox.add_texture("skybox", skybox_id, GL_TEXTURE_CUBE_MAP);
+	skybox.get_transform().Translate(glm::vec4(0.0f, 0.0f, -250.0f, 0.0f));
+
+	// Water:
+	Node water;
+	water.set_geometry(water_shape);
+	water.set_program(&water_shader, water_set_uniforms);
+	water.add_texture("skybox", skybox_id, GL_TEXTURE_CUBE_MAP);
+	water.add_texture("normal_map", water_normal_id, GL_TEXTURE_2D);
+	water.get_transform().SetTranslate(glm::vec3(-500.0f, -15.0f, -500.0f));
 
 	// Path:
 
+	std::vector<glm::vec3> torus_point_locations(9);
+
+	float x_next = 0.0f;
+	float z_dist = -60.0f;
+
+	auto Time = std::chrono::high_resolution_clock::now();
+	auto t = std::chrono::duration_cast<std::chrono::microseconds>(Time.time_since_epoch()).count();
+
+	std::srand(t);
+	for (int i = 0; i < torus_point_locations.size(); i++) {
+		torus_point_locations[i] = glm::vec3(x_next, 0.0f, z_dist + (z_dist * i));
+
+		float x_prev = x_next;
+		x_next = (std::rand() / (RAND_MAX / 30));
+		std::cout << x_next << "\n";
+	}
+
 	// Torus:
-	Node torus;
-	torus.set_geometry(torus_shape);
-	torus.set_program(&phong_shader, phong_set_uniforms);
+	std::vector<Node> torus_points(torus_point_locations.size());
+	for (std::size_t i = 1; i < torus_points.size(); i++) {
+		torus_points[i].set_geometry(torus_shape);
+		torus_points[i].set_program(&phong_shader, phong_set_uniforms_red);
+		torus_points[i].get_transform().SetTranslate(torus_point_locations[i]);
+	}
+
+	torus_points[0].set_program(&phong_shader, phong_set_uniforms_green);
 
 	// Player:
-	Player player = Player(player_shape, &phong_shader, phong_set_uniforms);
-
+	Player player = Player(player_shape, &phong_shader, phong_set_uniforms_red);
 
 
 	glClearDepthf(1.0f);
@@ -145,9 +218,6 @@ edaf80::Assignment5::run()
 	//glCullFace(GL_FRONT);
 	//glCullFace(GL_BACK);
 
-
-	auto lastTime = std::chrono::high_resolution_clock::now();
-
 	bool show_logs = true;
 	bool show_gui = true;
 	bool shader_reload_failed = false;
@@ -155,6 +225,9 @@ edaf80::Assignment5::run()
 	std::int32_t torus_program_index = 0;
 	auto polygon_mode = bonobo::polygon_mode_t::fill;
 
+	auto lastTime = std::chrono::high_resolution_clock::now();
+	int rend_size = 1;
+	int next_node = 0;
 
 	while (!glfwWindowShouldClose(window)) {
 		auto const nowTime = std::chrono::high_resolution_clock::now();
@@ -172,6 +245,27 @@ edaf80::Assignment5::run()
 		glm::vec3 direction = player.get_direction();
 		mCamera.mWorld.SetTranslate(player.get_position() - 6.0f * player.get_direction());
 		mCamera.mWorld.LookAt(player.get_position(), glm::vec3(0.0, 1.0, 0.0));
+		
+		for (int i = 0; i < torus_points.size(); i++) {
+			torus_points[i].get_transform().LookAt(player.get_position(), glm::vec3(0.0, 1.0, 0.0));
+		}
+		
+
+		glm::vec3 distance_vec = torus_points[next_node].get_transform().GetTranslation() - player.get_position();
+		float distance = sqrt(dot(distance_vec, distance_vec));
+
+		if (distance < 10.0 - (2 * 0.5)) {
+			torus_points[next_node].set_program(&phong_shader, phong_set_uniforms_red);
+
+			next_node += 1;
+			if (next_node > torus_points.size() - 1) {
+				return; // Show "win prompt"
+			}
+
+			torus_points[next_node].set_program(&phong_shader, phong_set_uniforms_green);
+			rend_size++;
+		}
+
 
 		if (inputHandler.GetKeycodeState(GLFW_KEY_R) & JUST_PRESSED) {
 			shader_reload_failed = !program_manager.ReloadAllPrograms();
@@ -216,9 +310,12 @@ edaf80::Assignment5::run()
 			//
 			// Todo: Render all your geometry here.
 			//
-			torus.render(mCamera.GetWorldToClipMatrix());
 			player.render(mCamera.GetWorldToClipMatrix());
 			skybox.render(mCamera.GetWorldToClipMatrix());
+			water.render(mCamera.GetWorldToClipMatrix());
+			for (int i = 0; i < rend_size; i++) {
+				torus_points[i].render(mCamera.GetWorldToClipMatrix());
+			}
 		}
 
 
@@ -232,17 +329,6 @@ edaf80::Assignment5::run()
 		bool opened = ImGui::Begin("Scene Control", nullptr, ImGuiWindowFlags_None);
 		if (opened) {
 			bonobo::uiSelectPolygonMode("Polygon mode", polygon_mode);
-			auto torus_selection_result = program_manager.SelectProgram("Torus", torus_program_index);
-			if (torus_selection_result.was_selection_changed) {
-				torus.set_program(torus_selection_result.program, phong_set_uniforms);
-			}
-			ImGui::Separator();
-			ImGui::Checkbox("Use normal mapping", &use_normal_mapping);
-			ImGui::ColorEdit3("Ambient", glm::value_ptr(ambient));
-			ImGui::ColorEdit3("Diffuse", glm::value_ptr(diffuse));
-			ImGui::ColorEdit3("Specular", glm::value_ptr(specular));
-			ImGui::SliderFloat("Shininess", &shininess, 1.0f, 1000.0f);
-			ImGui::SliderFloat3("Light Position", glm::value_ptr(light_position), -20.0f, 20.0f);
 		}
 		ImGui::End();
 
