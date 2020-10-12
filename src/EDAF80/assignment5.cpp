@@ -110,12 +110,21 @@ edaf80::Assignment5::run()
 
 	// Map ID:
 	auto water_normal_id = bonobo::loadTexture2D(config::resources_path("textures/waves.png"));
+	auto skybox_id = bonobo::loadTextureCubeMap(config::resources_path("cubemaps/cloudy/bluecloud_ft.jpg"),
+		config::resources_path("cubemaps/cloudy/bluecloud_bk.jpg"),
+		config::resources_path("cubemaps/cloudy/bluecloud_up.jpg"),
+		config::resources_path("cubemaps/cloudy/bluecloud_dn.jpg"),
+		config::resources_path("cubemaps/cloudy/bluecloud_rt.jpg"),
+		config::resources_path("cubemaps/cloudy/bluecloud_lf.jpg"));
+
+	/*
 	auto skybox_id = bonobo::loadTextureCubeMap(config::resources_path("cubemaps/NissiBeach2/posx.jpg"),
 		config::resources_path("cubemaps/NissiBeach2/negx.jpg"),
 		config::resources_path("cubemaps/NissiBeach2/posy.jpg"),
 		config::resources_path("cubemaps/NissiBeach2/negy.jpg"),
 		config::resources_path("cubemaps/NissiBeach2/posz.jpg"),
 		config::resources_path("cubemaps/NissiBeach2/negz.jpg"));
+	*/
 
 	// Uniforms:
 	float ellapsed_time_s = 0.0f;
@@ -199,7 +208,7 @@ edaf80::Assignment5::run()
 	std::vector<glm::vec3> torus_point_locations(9);
 
 	float x_next = 0.0f;
-	float z_dist = -60.0f;
+	float z_dist = -80.0f;
 
 	auto Time = std::chrono::high_resolution_clock::now();
 	auto t = std::chrono::duration_cast<std::chrono::microseconds>(Time.time_since_epoch()).count();
