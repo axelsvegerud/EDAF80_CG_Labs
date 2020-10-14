@@ -118,7 +118,6 @@ edaf80::Assignment5::run()
 		config::resources_path("cubemaps/cloudy/bluecloud_dn.jpg"),
 		config::resources_path("cubemaps/cloudy/bluecloud_rt.jpg"),
 		config::resources_path("cubemaps/cloudy/bluecloud_lf.jpg"));
-	auto last_id = bonobo::loadTexture2D(config::resources_path("textures/last.png"));
 
 	/*
 	auto skybox_id = bonobo::loadTextureCubeMap(config::resources_path("cubemaps/NissiBeach2/posx.jpg"),
@@ -373,7 +372,7 @@ edaf80::Assignment5::run()
 			//
 			player.render(mCamera.GetWorldToClipMatrix());
 			skybox.render(mCamera.GetWorldToClipMatrix());
-			water.render(mCamera.GetWorldToClipMatrix());
+			//water.render(mCamera.GetWorldToClipMatrix());
 			for (int i = 0; i < rend_size; i++) {
 				torus_points[i].render(mCamera.GetWorldToClipMatrix());
 			}
