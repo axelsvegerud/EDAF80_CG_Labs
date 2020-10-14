@@ -9,6 +9,7 @@
 #include <imgui.h>
 #include <tinyfiledialogs.h>
 
+#include <windows.h>
 #include <stdlib.h>
 #include <ctime>
 #include <array>
@@ -104,18 +105,20 @@ edaf80::Assignment5::run()
 
 	// Shapes:
 	auto torus_shape = parametric_shapes::createTorus(10.0f, 2.5f, 50u, 50u);
-	auto skybox_shape = parametric_shapes::createSphere(500.0f, 100u, 100u);
+	auto skybox_shape = parametric_shapes::createSphere(500.0f, 1250u, 1250u);
 	auto player_shape = parametric_shapes::createSphere(0.5f, 50u, 50u);
-	auto water_shape = parametric_shapes::createTessQuad(1000.0f, 1000.0f, 500u, 500u);
+	auto water_shape = parametric_shapes::createTessQuad(1010.0f, 1010.0f, 1010u, 1010u);
 
 	// Map ID:
 	auto water_normal_id = bonobo::loadTexture2D(config::resources_path("textures/waves.png"));
+
 	auto skybox_id = bonobo::loadTextureCubeMap(config::resources_path("cubemaps/cloudy/bluecloud_ft.jpg"),
 		config::resources_path("cubemaps/cloudy/bluecloud_bk.jpg"),
 		config::resources_path("cubemaps/cloudy/bluecloud_up.jpg"),
 		config::resources_path("cubemaps/cloudy/bluecloud_dn.jpg"),
 		config::resources_path("cubemaps/cloudy/bluecloud_rt.jpg"),
 		config::resources_path("cubemaps/cloudy/bluecloud_lf.jpg"));
+	auto last_id = bonobo::loadTexture2D(config::resources_path("textures/last.png"));
 
 	/*
 	auto skybox_id = bonobo::loadTextureCubeMap(config::resources_path("cubemaps/NissiBeach2/posx.jpg"),
@@ -128,7 +131,7 @@ edaf80::Assignment5::run()
 
 	// Uniforms:
 	float ellapsed_time_s = 0.0f;
-	auto light_position = glm::vec3(-2.0f, 4.0f, 2.0f);
+	auto light_position = glm::vec3(-16000.0f, 4000.0f, 16000.0f);
 	bool use_normal_mapping = true;
 	auto camera_position = mCamera.mWorld.GetTranslation();
 	auto ambient = glm::vec3(0.45f, 0.1f, 0.1f);
@@ -146,6 +149,9 @@ edaf80::Assignment5::run()
 
 	auto ambient_green = glm::vec3(0.0f, 0.45f, 0.0f);
 	auto diffuse_green = glm::vec3(0.2f, 1.0f, 0.2f);
+
+	auto ambient_yellow = glm::vec3(1.0f, 1.0f, 0.0f);
+	auto diffuse_yellow = glm::vec3(0.2f, 1.0f, 0.2f);
 
 	auto const set_uniforms = [&light_position](GLuint program) {
 		glUniform3fv(glGetUniformLocation(program, "light_position"), 1, glm::value_ptr(light_position));
@@ -165,6 +171,15 @@ edaf80::Assignment5::run()
 		glUniform3fv(glGetUniformLocation(program, "camera_position"), 1, glm::value_ptr(camera_position));
 		glUniform3fv(glGetUniformLocation(program, "ambient"), 1, glm::value_ptr(ambient_green));
 		glUniform3fv(glGetUniformLocation(program, "diffuse"), 1, glm::value_ptr(diffuse_green));
+		glUniform3fv(glGetUniformLocation(program, "specular"), 1, glm::value_ptr(specular));
+		glUniform1f(glGetUniformLocation(program, "shininess"), shininess);
+	};
+
+	auto const phong_set_uniforms_yellow = [&light_position, &camera_position, &ambient_yellow, &diffuse_yellow, &specular, &shininess](GLuint program) {
+		glUniform3fv(glGetUniformLocation(program, "light_position"), 1, glm::value_ptr(light_position));
+		glUniform3fv(glGetUniformLocation(program, "camera_position"), 1, glm::value_ptr(camera_position));
+		glUniform3fv(glGetUniformLocation(program, "ambient"), 1, glm::value_ptr(ambient_yellow));
+		glUniform3fv(glGetUniformLocation(program, "diffuse"), 1, glm::value_ptr(diffuse_yellow));
 		glUniform3fv(glGetUniformLocation(program, "specular"), 1, glm::value_ptr(specular));
 		glUniform1f(glGetUniformLocation(program, "shininess"), shininess);
 	};
@@ -193,7 +208,7 @@ edaf80::Assignment5::run()
 	skybox.set_geometry(skybox_shape);
 	skybox.set_program(&skybox_shader, set_uniforms);
 	skybox.add_texture("skybox", skybox_id, GL_TEXTURE_CUBE_MAP);
-	skybox.get_transform().Translate(glm::vec4(0.0f, 0.0f, -250.0f, 0.0f));
+	skybox.get_transform().SetTranslate(glm::vec3(0.0f, 0.0f, -460.0f));
 
 	// Water:
 	Node water;
@@ -201,14 +216,18 @@ edaf80::Assignment5::run()
 	water.set_program(&water_shader, water_set_uniforms);
 	water.add_texture("skybox", skybox_id, GL_TEXTURE_CUBE_MAP);
 	water.add_texture("normal_map", water_normal_id, GL_TEXTURE_2D);
-	water.get_transform().SetTranslate(glm::vec3(-500.0f, -15.0f, -500.0f));
+	water.get_transform().SetTranslate(glm::vec3(-500.0f, -40.0f, -965.0f));
+	//water.get_transform().SetTranslate(glm::vec3(-25.0f, -5.0f, -25.0f));
+
+	// Player:
+	Player player = Player(&default_shader, plane_set_uniforms);
 
 	// Path:
 
 	std::vector<glm::vec3> torus_point_locations(9);
 
 	float x_next = 0.0f;
-	float z_dist = -80.0f;
+	float z_dist = -100.0f;
 
 	auto Time = std::chrono::high_resolution_clock::now();
 	auto t = std::chrono::duration_cast<std::chrono::microseconds>(Time.time_since_epoch()).count();
@@ -218,23 +237,19 @@ edaf80::Assignment5::run()
 		torus_point_locations[i] = glm::vec3(x_next, 0.0f, z_dist + (z_dist * i));
 
 		float x_prev = x_next;
-		x_next = (std::rand() / (RAND_MAX / 30));
-		std::cout << x_next << "\n";
+		x_next = -30 + (std::rand() % (60 + 1));
+		std::cout << x_next << "\n"; 
 	}
 
 	// Torus:
 	std::vector<Node> torus_points(torus_point_locations.size());
-	for (std::size_t i = 1; i < torus_points.size(); i++) {
+	for (std::size_t i = 0; i < torus_points.size(); i++) {
 		torus_points[i].set_geometry(torus_shape);
-		torus_points[i].set_program(&phong_shader, phong_set_uniforms_red);
+		torus_points[i].set_program(&phong_shader, phong_set_uniforms_yellow);
 		torus_points[i].get_transform().SetTranslate(torus_point_locations[i]);
 	}
 
-	torus_points[0].set_program(&phong_shader, phong_set_uniforms_green);
-
-	// Player:
-	Player player = Player(&default_shader, plane_set_uniforms);
-
+	torus_points[0].set_program(&phong_shader, phong_set_uniforms_red);
 
 
 	glClearDepthf(1.0f);
@@ -268,8 +283,8 @@ edaf80::Assignment5::run()
 
 		glfwPollEvents();
 		inputHandler.Advance();
-		//mCamera.Update(deltaTimeUs, inputHandler);
-		//camera_position = mCamera.mWorld.GetTranslation();
+		mCamera.Update(deltaTimeUs, inputHandler);
+		camera_position = mCamera.mWorld.GetTranslation();
 		player.update(inputHandler, ellapsed_time_s / 1000.0f);
 		glm::vec3 direction = player.get_direction();
 		mCamera.mWorld.SetTranslate(player.get_position() - 6.0f * player.get_direction());
@@ -284,14 +299,31 @@ edaf80::Assignment5::run()
 		float distance = sqrt(dot(distance_vec, distance_vec));
 
 		if (distance < 10.0 - (2 * 0.5)) {
-			torus_points[next_node].set_program(&phong_shader, phong_set_uniforms_red);
 
-			next_node += 1;
+			torus_points[next_node].set_program(&phong_shader, phong_set_uniforms_green);
+
+			next_node++;
+
 			if (next_node > torus_points.size() - 1) {
+				/*
+				std::cout	<< "\n"
+							<< "###################"
+							<< "\n"
+							<< "	You made it!!	\n"
+							<< "	Your time was: "
+							<< ellapsed_time_s
+							<< "\n"
+							<< "###################"
+							<< "	\n \n";
+				*/
+
+				MessageBox(NULL, " You reached the last ring! \n Well played!", "Congratulations!",
+					MB_OK);
+
 				return; // Show "win prompt"
 			}
 
-			torus_points[next_node].set_program(&phong_shader, phong_set_uniforms_green);
+			torus_points[next_node].set_program(&phong_shader, phong_set_uniforms_red);
 			rend_size++;
 		}
 
@@ -341,7 +373,7 @@ edaf80::Assignment5::run()
 			//
 			player.render(mCamera.GetWorldToClipMatrix());
 			skybox.render(mCamera.GetWorldToClipMatrix());
-			//water.render(mCamera.GetWorldToClipMatrix());
+			water.render(mCamera.GetWorldToClipMatrix());
 			for (int i = 0; i < rend_size; i++) {
 				torus_points[i].render(mCamera.GetWorldToClipMatrix());
 			}
@@ -354,11 +386,20 @@ edaf80::Assignment5::run()
 		// Todo: If you want a custom ImGUI window, you can set it up
 		//       here
 		//
-
+		/*
 		bool opened = ImGui::Begin("Scene Control", nullptr, ImGuiWindowFlags_None);
 		if (opened) {
 			bonobo::uiSelectPolygonMode("Polygon mode", polygon_mode);
+			ImGui::Text("%.3f s", ellapsed_time_s);
 		}
+		ImGui::End();
+		*/
+		
+		bool opened = ImGui::Begin("Time", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+		if (opened)
+			ImGui::Text("%.3f s", ellapsed_time_s);
+			bonobo::uiSelectPolygonMode("Polygon mode", polygon_mode);
+			//ImGui::Text("Score: ", std::to_string(score).c_str());
 		ImGui::End();
 
 		if (show_logs)
