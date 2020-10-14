@@ -10,12 +10,16 @@
 
 Player::Player(const GLuint* program, const std::function<void(GLuint)>& set_uniforms) {
 
+	// Load the object:
 	std::vector<bonobo::mesh_data> const objects = bonobo::loadObjects(config::resources_path("plane/11665_Airplane_v1_l3.obj"));
 	if (objects.empty()) {
 		printf("Failed to load the sphere geometry: exiting.\n");
 	}
+
+	// Load the texture:
 	auto airplane_texture = bonobo::loadTexture2D(config::resources_path("plane/11665_Airplane_diff.jpg"));
 
+	// Set the shape:
 	bonobo::mesh_data const& plane = objects.front();
 
 	baseNode.set_geometry(plane);
@@ -38,6 +42,7 @@ glm::vec3 Player::get_direction() {
 	return direction;
 }
 
+// The controls:
 void Player::update(InputHandler inputHandler, float delta) {
 	glm::vec3 force_lift = glm::vec3(0.0, 0.0, 0.0);
 	glm::vec3 force_thrust = glm::vec3(0.0, 0.0, 0.0);
